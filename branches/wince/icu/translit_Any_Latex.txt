@@ -1,0 +1,79 @@
+// Any_Latex
+
+// This transliterator is supposed to convert Unicode text into
+// the (language-specific) transliterated format that latex (babel and arabtex)
+// expects. For the start, only ancient greek will be supported. Feel free to
+// add support for your language if desired.
+// I am just starting to use ICU, so please forgive my mistakes.
+
+// Author Martin Gruner
+// Copyright the Crosswire Bible Society
+
+translit_Any_Latex {
+  Rule {
+
+  //Decompose combined characters
+  ":: NFD (NFC) ;"
+	
+	//How to handle accents now?
+
+	//The letters:
+  " \u0307A > | ;" //Iota subscriptum
+  " \u03084 > ' ;" //Accent acute
+
+  " \u03091 > A ;" //Alpha
+  " \u03092 > B ;" //Beta
+  " \u03093 > D ;" //Gamma
+  " \u03094 > G ;" //Delta
+  " \u03095 > E ;" //Epsilon
+  " \u03096 > Z ;" //Zeta
+  " \u03097 > J ;" //Thetha !!
+  " \u03098 > H ;" //Eta
+  " \u03099 > I ;" //Iota
+  " \u0309A > K ;" //Kappa
+  " \u0309B > L ;" //Lambda
+  " \u0309C > M ;" //My
+  " \u0309D > N ;" //Ny
+  " \u0309E > X ;" //Xi
+  " \u0309F > O ;" //Omikron
+  " \u030A0 > P ;" //Pi
+  " \u030A1 > R ;" //Rho
+  " \u030A3 > S ;" //Sigma
+  " \u030A4 > T ;" //Tau
+  " \u030A5 > U ;" //Ypsilon !!
+  " \u030A6 > F ;" //Phi
+  " \u030A7 > Q ;" //Chi  !!
+  " \u030A8 > Y ;" //Psi  !!
+  " \u030A9 > W ;" //Omikron
+  
+  " \u030B1 > a ;" //alpha
+  " \u030B2 > b ;" //beta
+  " \u030B3 > d ;" //gamma
+  " \u030B4 > g ;" //delta
+  " \u030B5 > e ;" //epsilon
+  " \u030B6 > z ;" //zeta
+  " \u030B7 > j ;" //thetha !!
+  " \u030B8 > h ;" //eta
+  " \u030B9 > i ;" //iota
+  " \u030BA > k ;" //kappa
+  " \u030BB > l ;" //lambda
+  " \u030BC > m ;" //my
+  " \u030BD > n ;" //ny
+  " \u030BE > x ;" //xi
+  " \u030BF > o ;" //omikron
+  " \u030C0 > p ;" //pi
+  " \u030C1 > r ;" //rho
+  " \u030C3 > s ;" //sigma
+  " \u030C4 > t ;" //tau
+  " \u030C5 > u ;" //ypsilon !!
+  " \u030C6 > f ;" //phi
+  " \u030C7 > q ;" //chi  !!
+  " \u030C8 > y ;" //psi  !!
+  " \u030C9 > w ;" //omikron
+
+
+  ":: NFC (NFD);"
+
+	}
+}
+
