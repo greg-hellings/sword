@@ -1,0 +1,58 @@
+Source: sword
+Build-Depends: debhelper (>=4.0.0), libz-dev, libicu26-dev, icu, autotools-dev
+Section: libs
+Priority: optional
+Maintainer: Daniel Glassey <wdg@debian.org>
+Standards-Version: 3.5.6.0
+
+Package: libsword3c102
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends}, libsword-config (>=1.5.5.99-2)
+Recommends: sword-frontend
+Conflicts: libsword1
+Description: API/library for bible software
+ The SWORD Project is an open source, cross-platform (Linux, Windows, Solaris,
+ MacOSX etc.) API/library for Bible software with a constantly growing list 
+ of front-ends (GUI, textmode, web-based, etc.) and a library of over 200 
+ text modules.
+ .
+ This package contains the core libraries for the project.
+ .
+ Please read the README.Debian for more information on how to obtain other
+ modules for sword.
+
+Package: libsword-dev
+Architecture: any
+Section: libdevel
+Depends: libsword3c102 (= ${Source-Version}), libc6-dev, libz-dev, icu, libicu26-dev
+Provides: sword-dev
+Recommends: libsword-runtime
+Description: Development files for libsword
+ This package contains the static libraries and headers for developing 
+ applications that use the sword library.
+
+Package: diatheke
+Architecture: any
+Section: web
+Depends: ${shlibs:Depends}, apache | httpd
+Recommends: libapache-mod-perl | apache-perl
+Description: CGI script for making bible website
+ A command line utility for sword, and a cgi perl script that
+ uses the utility to produce a bible browsing/searching website.
+
+Package: libsword-runtime
+Architecture: any
+Section: text
+Depends: ${shlibs:Depends}
+Conflicts: libsword-dev (<< 1.5.3-1)
+Description: Utilities for Sword
+ This package contains utilities for generating data modules.
+
+Package: libsword-config
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends}
+Description: Config files for Sword
+ Version independent config files for Sword.
+
