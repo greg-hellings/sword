@@ -87,21 +87,23 @@ char RawLD::getEntry(long away)
 	strcpy(buf, *key);
 
 	strongsPad(buf);
-	
+
+	*entrybuf = 0;
 	if (!(retval = findoffset(buf, &start, &size, away))) {
 		if (entrybuf)
 			delete [] entrybuf;
-		entrybuf = new char [ size * 2 ];
-		idxbuf   = new char [ size + 1 ];
+		entrybuf = new char [ ++size * 2 ];
+		idxbuf   = new char [ size ];
 
-		gettext(start, size + 1, idxbuf, entrybuf);
+		gettext(start, size, idxbuf, entrybuf);
 		if (!key->Persist())			// If we have our own key
 			*key = idxbuf;				// reset it to entry index buffer
 
 		stdstr(&entkeytxt, idxbuf);	// set entry key text that module 'snapped' to.
+		delete [] idxbuf;
 	}
+		
 	delete [] buf;
-	delete [] idxbuf;
 	return retval;
 }
 
@@ -115,9 +117,10 @@ char RawLD::getEntry(long away)
 
 RawLD::operator char*()
 {
-	getEntry();
-	preptext(entrybuf);
-	RenderText(entrybuf, strlen(entrybuf) * 2);
+	if (!getEntry()) {
+		preptext(entrybuf);
+		RenderText(entrybuf, strlen(entrybuf) * 2);
+	}
 
 	return entrybuf;
 }
