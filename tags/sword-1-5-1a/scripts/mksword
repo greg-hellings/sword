@@ -1,0 +1,6 @@
+REV=`cd ..;basename \`pwd ..\`|cut -d\- -f2`
+chmod +x *
+chmod +x ../apps/X11/cheatah/configure
+chmod +x ../apps/X11/cheatah/missing
+cp sapphire.cpp ../src/modules/common
+cd ../..; tar -v -c -p -s -z --exclude sword-$REV/bin -X sword-$REV/modlist -f sword-$REV.tar.gz sword-$REV/*
