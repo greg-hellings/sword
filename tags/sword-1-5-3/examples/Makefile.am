@@ -1,0 +1,3 @@
+AUTOMAKE_OPTIONS = 1.5
+
+SUBDIRS = cmdline
