@@ -310,9 +310,9 @@ ListKey VerseKey::ParseVerseList(const char *buf, const char *defaultKey, bool e
 			*number = 0;
 			break;
 
-		case '-':
-		case ',':
-		case ';':
+		case '-': 
+		case ',': // on number new verse
+		case ';': // on number new chapter
 			number[tonumber] = 0;
 			tonumber = 0;
 			if (*number) {
