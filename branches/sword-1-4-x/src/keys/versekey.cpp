@@ -400,13 +400,15 @@ ListKey VerseKey::ParseVerseList(const char *buf, const char *defaultKey, bool e
 						else tmpListKey << (const SWKey &)(const SWKey)(const char *)curkey;
 					}
 					else	if (expandRange) {
-						VerseKey *newElement = (VerseKey *)tmpListKey.GetElement();
-						if (partial > 1)
-							curkey = MAXCHAPTER;
-						if (partial > 0)
-							curkey = MAXVERSE;
-						newElement->UpperBound(curkey);
-						*newElement = TOP;
+						VerseKey *newElement = dynamic_cast<VerseKey *>(tmpListKey.GetElement());
+						if (newElement) {
+							if (partial > 1)
+								curkey = MAXCHAPTER;
+							if (partial > 0)
+								curkey = MAXVERSE;
+							newElement->UpperBound(curkey);
+							*newElement = TOP;
+						}
 					}
 				}
 				lastPartial = partial;
@@ -533,13 +535,15 @@ ListKey VerseKey::ParseVerseList(const char *buf, const char *defaultKey, bool e
 				else tmpListKey << (const SWKey &)(const SWKey)(const char *)curkey;
 			}
 			else if (expandRange) {
-				VerseKey *newElement = (VerseKey *)tmpListKey.GetElement();
-				if (partial > 1)
-					curkey = MAXCHAPTER;
-				if (partial > 0)
-					curkey = MAXVERSE;
-				newElement->UpperBound(curkey);
-				*newElement = TOP;
+				VerseKey *newElement = dynamic_cast<VerseKey *>(tmpListKey.GetElement());
+				if (newElement) {
+					if (partial > 1)
+						curkey = MAXCHAPTER;
+					if (partial > 0)
+						curkey = MAXVERSE;
+					newElement->UpperBound(curkey);
+					*newElement = TOP;
+				}
 			}
 		}
 	}
