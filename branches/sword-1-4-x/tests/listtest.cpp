@@ -26,5 +26,29 @@ int main(int argc, char **argv)
 	for (lk2 = TOP; !lk2.Error(); lk2++)
 		cout << (const char *) lk2 << "\n";
 
+
+	lk2 = VerseKey().ParseVerseList("mat-rev", 0, true);
+/*
+
+	for (int i = 0; i < 2; i++) {
+	VerseKey x, y;
+	ListKey lk3;
+	x = "rev";
+	y = x;
+	x = "mat";
+	VerseKey newElement;
+	newElement.LowerBound(x);
+	newElement.UpperBound(y);
+	lk3 << newElement;
+
+	lk2 << lk3;
+	}
+
+*/
+	cout << "---------\n";
+
+	for (lk2 = TOP; !lk2.Error(); lk2++)
+		cout << (const char *) lk2 << "\n";
+
 	return 0;
 }
