@@ -1,0 +1,81 @@
+                       INSTALLATION NOTES
+
+
+CONFIGURATION
+
+You may want to have a look in the configuration file Makefile.cfg to be
+sure everything is being built the way that you would like.
+
+
+DECIPHER MECHANISM
+
+Cipher tools are not included by default, so if you are planning on using
+any copyrighted texts or any other ciphered modules, you will need to
+add the necessary files before building.  SWORD uses the SAPPHIRE II cipher
+which is not exportable in source form outside of the US and CANADA.  To
+include encipher / decipher functionality, the necessary cipher package
+MUST BE DOWNLOADED AND ADDED TO THE SOURCE TREE BEFORE COMPILING.
+SAPPHIRE may be obtained from:
+
+    http://cryptography.org/cgi-bin/crypto.cgi/libraries/sapphire.zip
+
+These files must be replaced with files from this package:
+
+    .../sword/include/sapphire.h
+    .../sword/src/modules/common/sapphire.cpp
+
+If you are outside of the US or Canada, you will have to obtain this package
+elsewhere.
+
+
+BUILDING
+
+A 'make' at the top level directory of the SWORD package should build the
+libraries necessary for building any of the frontends.  The libraries will
+be built in the ./lib directory.  If you encounter an error, you may need
+to change a setting in the Makefile.cfg file.  Most obviously watch for:
+CC=gcc or CC=egcs
+
+After the libraries are built, one then may proceed to the ./apps
+directory.  The most basic application that is stable and easy to
+build is the cheatah frontend (./apps/X11/cheatah).  These frontends
+each have their own make system, so read the help in their respective
+directories if a problem is encountered while building.
+
+
+MODULES
+
+To be useful the software needs to find SWORD 'modules' installed somewhere
+accessible.  These module plugins consist of Bible texts, commentaries,
+dictionaries, and the like.  New plugins are constantly being added.  They
+may be obtained from:
+http://www.crosswire.org or various mirrors.
+A file named 'mods.conf' or directory named mods.d contains all configuration
+information regarding the installed modules available to the API.  The format
+of a config file is fairly straight-forward, and most modules come with their
+own .conf file, of which the contents may be appended to the mods.conf file
+or placed in the mods.d directory.
+
+FOR A RECOMMENDED MODULE INSTALLATION SCHEME, SEE
+.../sword/samples/recommended, otherwise, the specific details follow:
+
+The API looks for its module configuration in the following sequence:
+	./mods.[conf|d]
+	$SWORD_PATH/mods.[conf|d]
+	$HOME/.sword/mods.[conf|d]
+	or finally from information found in a system-wide configuration file
+		/etc/sword.conf in the format:
+			[Install]
+			DataPath=/where/your/datafiles/are/installed
+		then the API will look for DataPath/mods.[conf|d]
+
+* NOTE:
+Using the above scheme, SWORD will also determine the path to prefix to the
+specified datafile location found in the config files.  The prefix path will
+be the directory where SWORD finds mods.[conf|d], WITH ONE EXCEPTION: if SWORD
+finds its configuration in the user's home directory,
+$HOME/.sword/mods.[conf|d], no prefix will be prepended to the data file
+locations; hence, config files in $HOME/.sword must contain absolute path
+names.
+
+Sample config files can be found in: .../sword/samples
