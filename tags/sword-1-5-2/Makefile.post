@@ -1,0 +1,25 @@
+s = $(c) $(cpp)
+d = $(c:%.c=%.d) $(cpp:%.cpp=%.d)
+o = $(c:%.c=%.o) $(cpp:%.cpp=%.o)
+so = $(o:%.o=%.so)
+
+ifeq ($(system),macosx)
+arflags = cr
+else
+arflags = crs
+endif
+
+ifeq (${buildshare},yes)
+${root}/lib/libsword.a: $(o)
+	$(CROSS_COMPILE)$(AR) $(arflags) $@ $(o)
+	$(CROSS_COMPILE)$(CC) -fpic -shared -o ${root}/lib/libsword.so ${objdir}/*.so
+
+else
+${root}/lib/libsword.a: $(o)
+	$(CROSS_COMPILE)$(AR) $(arflags) $@ $(o)
+endif
+
+
+ifneq ($(nodeps),yes)
+-include $(d)
+endif
