@@ -6,7 +6,7 @@
 #include "swlog.h"
 //---------------------------------------------------------------------------
 
-SWLog *SWLog::systemlog = new SWLog();
+SWLog *SWLog::systemlog = 0;
 
 class __staticsystemlog {
 public:
