@@ -358,6 +358,7 @@ ListKey VerseKey::ParseVerseList(const char *buf, const char *defaultKey, bool e
 				}
 
 				if (((comma)||((verse < 0)&&(bookno < 0)))&&(!lastPartial)) {
+//				if (comma) {
 					curkey.Chapter(VerseKey(tmpListKey).Chapter());
 					curkey.Verse(chap);  // chap because this is the first number captured
 				}
@@ -493,6 +494,7 @@ ListKey VerseKey::ParseVerseList(const char *buf, const char *defaultKey, bool e
 		}
 
 		if (((comma)||((verse < 0)&&(bookno < 0)))&&(!lastPartial)) {
+//		if (comma) {
 			curkey.Chapter(VerseKey(tmpListKey).Chapter());
 			curkey.Verse(chap);  // chap because this is the first number captured
 		}
