@@ -368,11 +368,13 @@ ListKey &VerseKey::ParseVerseList(char *buf, const char *defaultKey, bool expand
 				else {
 					if (!dash) 	// if last separator was not a dash just add
 						tmpListKey << (const SWKey &)(const SWKey)(const char *)curkey;
-					else {
+					else if (expandRange) {
 						VerseKey newElement;
 						newElement.LowerBound(lBound);
 						newElement.UpperBound(curkey);
+						newElement = TOP;
 						tmpListKey << newElement;
+//						tmpListKey << (const SWKey &)(const SWKey)(const char *)newElement;
 					}
 				}
 			}
@@ -468,10 +470,12 @@ ListKey &VerseKey::ParseVerseList(char *buf, const char *defaultKey, bool expand
 		else {
 			if (!dash) 	// if last separator was not a dash just add
 				tmpListKey << (const SWKey &)(const SWKey)(const char *)curkey;
-			else {
+			else if (expandRange) {
 				VerseKey newElement;
 				newElement.LowerBound(lBound);
 				newElement.UpperBound(curkey);
+				newElement = TOP;
+//				tmpListKey << (const SWKey &)(const SWKey)(const char *)newElement;
 				tmpListKey << newElement;
 			}
 		}
