@@ -16,14 +16,13 @@
  * ENT:	ikey - text key
  */
 
-ListKey::ListKey(const char *ikey): SWKey(ikey)
-{
+ListKey::ListKey(const char *ikey): SWKey(ikey) {
 	arraymax = 0;
 	ClearList();
 }
 
-ListKey::ListKey(ListKey const &k) : SWKey(k.keytext)
-{
+
+ListKey::ListKey(ListKey const &k) : SWKey(k.keytext) {
 	arraymax = k.arraymax;
 	arraypos = k.arraypos;
 	arraycnt = k.arraycnt;
@@ -74,7 +73,7 @@ void ListKey::ClearList()
  * ENT:	ikey - other ListKey object
  */
 
-ListKey &ListKey::operator =(ListKey &ikey)
+ListKey &ListKey::operator =(const ListKey &ikey)
 {
 	ClearList();
 

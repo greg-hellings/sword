@@ -4,6 +4,7 @@
 #include <listkey.h>
 #include <versekey.h>
 
+
 int main(int argc, char **argv)
 {
 	ListKey lk, lk2;
@@ -27,7 +28,11 @@ int main(int argc, char **argv)
 		cout << (const char *) lk2 << "\n";
 
 
-	lk2 = VerseKey().ParseVerseList("mat-rev", 0, true);
+	lk2 = VerseKey().ParseVerseList("mat-john", 0, true);
+
+	VerseKey yoyo("john");
+	yoyo = MAXCHAPTER;
+	cout << yoyo;
 /*
 
 	for (int i = 0; i < 2; i++) {

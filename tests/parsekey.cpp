@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 
 	DefaultVSKey = "jas3:1";
 	
-	ListKey &list = VerseKey::ParseVerseList(argv[1], DefaultVSKey);
+	ListKey list = VerseKey::ParseVerseList(argv[1], DefaultVSKey);
 
 	while (!list.Error()) {
 		cout << (const char *)list << "\n";
