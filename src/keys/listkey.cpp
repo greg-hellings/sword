@@ -223,6 +223,24 @@ char ListKey::SetToElement(int ielement, POSITION pos)
 
 
 /******************************************************************************
+ * ListKey::GetElement	- Gets a key element number
+ *
+ * ENT:	pos	- element number to get (or default current)
+ *
+ * RET:	Key or null on error
+ */
+
+SWKey *ListKey::GetElement(int pos) {
+	if (pos >=0) {
+		if (pos >=arraycnt)
+			error = KEYERR_OUTOFBOUNDS;
+	}
+	else pos = arraypos;
+	return (error) ? 0:array[pos];
+}
+	
+
+/******************************************************************************
  * ListKey::Remove	- Removes current element from list
  */
 

@@ -4,7 +4,7 @@
  *				(e.g. verse, word,
  *				place, etc.)
  *
- * $Id: listkey.h,v 1.1 1999/05/04 22:03:36 scribe Exp $
+ * $Id: listkey.h,v 1.1.1.1.2.1 2000/04/09 23:22:28 scribe Exp $
  *
  * Copyright 1998 CrossWire Bible Society (http://www.crosswire.org)
  *	CrossWire Bible Society
@@ -44,6 +44,7 @@ public:
 	virtual int Count();
 	virtual void Remove();	// remove current element
 	virtual char SetToElement(int, POSITION = TOP);
+	virtual SWKey *GetElement(int pos = -1);
 	virtual ListKey &operator <<(const SWKey &); // add to list
 	virtual ListKey &operator =(ListKey &ikey);
 	virtual SWKey &operator =(const char *ikey){ return SWKey::operator =(ikey); }
