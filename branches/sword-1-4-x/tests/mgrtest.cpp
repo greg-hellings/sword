@@ -6,11 +6,12 @@ int main(int argc, char **argv) {
 	SWMgr mymgr;
 	ModMap::iterator it;
 
+	mymgr.setGlobalOption("Strong's Numbers", "On");
 	for (it = mymgr.Modules.begin(); it != mymgr.Modules.end(); it++) {
 		if ((!strcmp((*it).second->Type(), "Biblical Texts")) || (!strcmp((*it).second->Type(), "Commentaries"))) {
 			(*it).second->SetKey("James 1:19");
 			cout << "[" << (*it).second->Name() << "] [" << (*it).second->Description() << "]\n";
-			cout << (char *) *(*it).second << "\n\n";
+			cout << (char *) (*it).second->StripText() << "\n\n";
 		}
 	}
 	SWModule *mhc = mymgr.Modules["MHC"];

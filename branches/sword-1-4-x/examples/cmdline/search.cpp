@@ -10,6 +10,8 @@ int main(int argc, char **argv)
 	VerseKey vk;
 	ModMap::iterator it;
 
+	manager.setGlobalOption("Strong's Numbers", "On");
+
 	if ((argc != 3) && (argc != 5)) {
 		fprintf(stderr, "usage: %s <modname> <\"search string\"> [\"min\" \"max\"]\n", argv[0]);
 		exit(-1);
