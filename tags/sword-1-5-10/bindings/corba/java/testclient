@@ -1,3 +1,0 @@
-#!/bin/sh
-TOMCAT_HOME=/usr/local/tomcat
-java -cp $TOMCAT_HOME/common/lib/servlet-api.jar:classes org.crosswire.sword.orb.SwordOrb $*
