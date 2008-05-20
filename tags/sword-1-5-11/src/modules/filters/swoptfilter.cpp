@@ -1,0 +1,47 @@
+/******************************************************************************
+ *
+ * swoptfilter -	SWFilter descendant and base class for all option filters
+ */
+
+
+#include <swoptfilter.h>
+#include <utilstr.h>
+
+SWORD_NAMESPACE_START
+
+
+SWOptionFilter::SWOptionFilter() {
+	static StringList empty;
+	static const char *empty2 = "";
+	optName   = empty2;
+	optTip    = empty2;
+	optValues = &empty;
+}
+
+SWOptionFilter::SWOptionFilter(const char *oName, const char *oTip, const StringList *oValues) {
+	optName   = oName;
+	optTip    = oTip;
+	optValues = oValues;
+}
+
+
+SWOptionFilter::~SWOptionFilter() {
+}
+
+
+void SWOptionFilter::setOptionValue(const char *ival) {
+	for (StringList::const_iterator loop = optValues->begin(); loop != optValues->end(); loop++) {
+		if (!stricmp(loop->c_str(), ival)) {
+			optionValue = *loop;
+			option = (!strnicmp(ival, "On", 2));	// convenience for boolean filters
+			break;
+		}
+	}
+}
+
+const char *SWOptionFilter::getOptionValue() {
+	return optionValue;
+}
+
+
+SWORD_NAMESPACE_END
