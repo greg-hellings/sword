@@ -74,7 +74,6 @@ SET(sword_base_module_SOURCES
 	src/modules/filters/gbfredletterwords.cpp
 	src/modules/filters/gbfmorph.cpp
 	src/modules/filters/gbfwordjs.cpp
-	src/modules/filters/gbflatex.cpp
 
 	src/modules/filters/thmlstrongs.cpp
 	src/modules/filters/thmlfootnotes.cpp
@@ -90,7 +89,6 @@ SET(sword_base_module_SOURCES
 	src/modules/filters/thmlhtmlhref.cpp
 	src/modules/filters/thmlwebif.cpp
 	src/modules/filters/thmlwordjs.cpp
-	src/modules/filters/thmllatex.cpp
 
 	src/modules/filters/teiplain.cpp
 	src/modules/filters/teirtf.cpp
@@ -103,11 +101,11 @@ SET(sword_base_module_SOURCES
 	src/modules/filters/thmlplain.cpp
 	src/modules/filters/osisosis.cpp
 
-	src/modules/filters/osisenum.cpp
-	src/modules/filters/osisglosses.cpp
-	src/modules/filters/osisxlit.cpp
+	src/modules/filters/osisenum.cpp 
+	src/modules/filters/osisglosses.cpp 
+	src/modules/filters/osisxlit.cpp 
 	src/modules/filters/osisheadings.cpp
-	src/modules/filters/osisfootnotes.cpp
+	src/modules/filters/osisfootnotes.cpp 
 	src/modules/filters/osishtmlhref.cpp
 	src/modules/filters/osisxhtml.cpp
 	src/modules/filters/osiswebif.cpp
@@ -122,7 +120,6 @@ SET(sword_base_module_SOURCES
 	src/modules/filters/osiswordjs.cpp
 	src/modules/filters/osismorphsegmentation.cpp
 	src/modules/filters/osisreferencelinks.cpp
-	src/modules/filters/osislatex.cpp	
 
 	src/modules/filters/latin1utf8.cpp
 	src/modules/filters/latin1utf16.cpp
@@ -273,9 +270,8 @@ SET(SWORD_INSTALL_HEADERS
 	include/gbfstrongs.h
 	include/gbfwordjs.h
 	include/gbfthml.h
-	include/gbflatex.h
-
 	include/greeklexattribs.h
+
 	include/hebrewmcim.h
 	include/hrefcom.h
 	include/installmgr.h
@@ -301,14 +297,13 @@ SET(SWORD_INSTALL_HEADERS
 	include/osisrtf.h
 	include/osisosis.h
 	include/osisstrongs.h
-	include/osisfootnotes.h
-	include/osislemma.h
-	include/osisredletterwords.h
-	include/osisscripref.h
-	include/osiswordjs.h
-	include/osisvariants.h
-	include/osisreferencelinks.h
-	include/osislatex.h
+	include/osisfootnotes.h   
+	include/osislemma.h   
+	include/osisredletterwords.h   
+	include/osisscripref.h   
+	include/osiswordjs.h   
+	include/osisvariants.h   
+	include/osisreferencelinks.h   
 
 	include/papyriplain.h
 	include/rawcom.h
@@ -369,7 +364,6 @@ SET(SWORD_INSTALL_HEADERS
 	include/thmlstrongs.h
 	include/thmlvariants.h
 	include/thmlwordjs.h
-	include/thmllatex.h
 
 	include/teiplain.h
 	include/teirtf.h

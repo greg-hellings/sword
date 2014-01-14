@@ -38,7 +38,6 @@
 #include <gbfosis.h>
 #include <thmlosis.h>
 #include <osisrtf.h>
-#include <osislatex.h>
 #include <teirtf.h>
 #include <osisosis.h>
 #include <osishtmlhref.h>
@@ -50,9 +49,7 @@
 #include <gbfxhtml.h>
 #include <osisxhtml.h>
 #include <teixhtml.h>
-#include <gbflatex.h>
-#include <thmllatex.h>
- 
+
 #include <markupfiltmgr.h>
 
 #include <swmgr.h>
@@ -280,14 +277,6 @@ void MarkupFilterMgr::CreateFilters(char markup) {
 		fromgbf   = new GBFRTF();
 		fromosis  = new OSISRTF();
 		fromtei   = new TEIRTF();
-		break;
-
-	case FMT_LATEX:
-		fromplain = NULL;
-		fromthml  = new ThMLLaTeX();
-		fromgbf   = new GBFLaTeX();
-		fromosis  = new OSISLaTeX();
-		fromtei   = NULL;
 		break;
 
 	case FMT_OSIS:

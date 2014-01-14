@@ -142,9 +142,6 @@ LOCAL_SRC_FILES := ../../../src/modules/comments/zcom/zcom.cpp \
 ../../../src/modules/filters/teiplain.cpp \
 ../../../src/modules/filters/swbasicfilter.cpp \
 ../../../src/modules/filters/scsuutf8.cpp \
-../../../src/modules/filters/gbflatex.cpp \
-../../../src/modules/filters/thmllatex.cpp \
-../../../src/modules/filters/osislatex.cpp \
 ../../../src/mgr/stringmgr.cpp \
 ../../../src/mgr/swmgr.cpp \
 ../../../src/mgr/swsearchable.cpp \
