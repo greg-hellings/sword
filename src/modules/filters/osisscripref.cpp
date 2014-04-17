@@ -5,7 +5,7 @@
  *
  * $Id$
  *
- * Copyright 2003-2013 CrossWire Bible Society (http://www.crosswire.org)
+ * Copyright 2003-2014 CrossWire Bible Society (http://www.crosswire.org)
  *	CrossWire Bible Society
  *	P. O. Box 2528
  *	Tempe, AZ  85280-2528
@@ -35,7 +35,7 @@ namespace {
 	static const char oTip[]  = "Toggles Scripture Cross-references On and Off if they exist";
 
 	static const StringList *oValues() {
-		static const SWBuf choices[3] = {"On", "Off", ""};
+		static const SWBuf choices[3] = {"Off", "On", ""};
 		static const StringList oVals(&choices[0], &choices[2]);
 		return &oVals;
 	}

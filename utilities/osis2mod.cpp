@@ -4,7 +4,7 @@
  *
  * $Id$
  *
- * Copyright 2003-2013 CrossWire Bible Society (http://www.crosswire.org)
+ * Copyright 2003-2014 CrossWire Bible Society (http://www.crosswire.org)
  *	CrossWire Bible Society
  *	P. O. Box 2528
  *	Tempe, AZ  85280-2528
@@ -414,10 +414,10 @@ bool isValidRef(const char *buf) {
  */
 void makeValidRef(VerseKey &key) {
 	VerseKey saveKey;
-	saveKey.setVersificationSystem(currentVerse.getVersificationSystem());
+	saveKey.setVersificationSystem(key.getVersificationSystem());
 	saveKey.setAutoNormalize(false);
 	saveKey.setIntros(true);
-	saveKey = currentVerse;
+	saveKey = key;
 
 	// Since isValidRef returned false constrain the key to the nearest prior reference.
 	// If we are past the last chapter set the reference to the last chapter
@@ -1140,7 +1140,7 @@ bool handleToken(SWBuf &text, XMLTag token) {
  * requiring each stored entry (i.e. verses) to be well-formed xml.
  * This routine normalizes container elements which could cross verse boundaries into milestones.
  * For most of these OSIS elements, there is a milestone form. However, p is not milestoneable.
- * For this reason, p is transformed into lb elements.
+ * For this reason, p is transformed into div elements with type x-p.
  * param t the tag to transform
  * return the transformed tag or the original one
  */
@@ -1161,9 +1161,9 @@ XMLTag transformBSP(XMLTag t) {
 
 	SWBuf tagName = t.getName();
 	if (!t.isEndTag()) {
-		// Transform <p> into <div type="paragraph"> and milestone it
+		// Transform <p> into <div type="x-p"> and milestone it
 		if (tagName == "p") {
-			t.setText("<div type=\"paragraph\" />");
+			t.setText("<div type=\"x-p\" />");
 			sprintf(buf, "gen%d", sID++);
 			t.setAttribute("sID", buf);
 		}
@@ -1222,7 +1222,7 @@ XMLTag transformBSP(XMLTag t) {
 			    tagName == "verse"
 			) {
 				// make this a clone of the start tag with sID changed to eID
-				// Note: in the case of </p> the topToken is a <div type="paragraph">
+				// Note: in the case of </p> the topToken is a <div type="x-p">
 				t = topToken;
 				t.setAttribute("eID", t.getAttribute("sID"));
 				t.setAttribute("sID", 0);
@@ -1277,10 +1277,10 @@ void writeLinks()
 	}
 }
 
-void usage(const char *app, const char *error = 0) {
-
+void usage(const char *app, const char *error = 0, const bool verboseHelp = false) {
+	
 	if (error) fprintf(stderr, "\n%s: %s\n", app, error);
-
+	
 	fprintf(stderr, "OSIS Bible/commentary module creation tool for The SWORD Project\n");
 	fprintf(stderr, "\nusage: %s <output/path> <osisDoc> [OPTIONS]\n", app);
 	fprintf(stderr, "  <output/path>\t\t an existing folder that the module will be written\n");
@@ -1293,37 +1293,57 @@ void usage(const char *app, const char *error = 0) {
 	fprintf(stderr, "\t\t\t\t 2 - verse; 3 - chapter; 4 - book\n");
 	fprintf(stderr, "  -c <cipher_key>\t encipher module using supplied key\n");
 	fprintf(stderr, "\t\t\t\t (default no enciphering)\n");
+
+#ifdef _ICU_       
 	fprintf(stderr, "  -N\t\t\t do not convert UTF-8 or normalize UTF-8 to NFC\n");
-	fprintf(stderr, "\t\t\t\t (default is to convert to UTF-8, if needed,\n");
-	fprintf(stderr, "\t\t\t\t  and then normalize to NFC)\n");
-	fprintf(stderr, "\t\t\t\t Note: UTF-8 texts should be normalized to NFC.\n");
+	if (verboseHelp) {
+		fprintf(stderr, "\t\t\t\t (default is to convert to UTF-8, if needed,\n");
+		fprintf(stderr, "\t\t\t\t  and then normalize to NFC)\n");
+		fprintf(stderr, "\t\t\t\t Note: UTF-8 texts should be normalized to NFC.\n");
+	}
+#endif
+
 	fprintf(stderr, "  -s <2|4>\t\t bytes used to store entry size (default is 2).\n");
-	fprintf(stderr, "\t\t\t\t Note: useful for commentaries with very large\n");
-	fprintf(stderr, "\t\t\t\t entries in uncompressed modules\n");
-	fprintf(stderr, "\t\t\t\t (2 bytes to store size equal 65535 characters)\n");
+	if (verboseHelp) {
+		fprintf(stderr, "\t\t\t\t Note: useful for commentaries with very large\n");
+		fprintf(stderr, "\t\t\t\t entries in uncompressed modules\n");
+		fprintf(stderr, "\t\t\t\t (2 bytes to store size equal 65535 characters)\n");
+	}
 	fprintf(stderr, "  -v <v11n>\t\t specify a versification scheme to use (default is KJV)\n");
-	fprintf(stderr, "\t\t\t\t Note: The following are valid values for v11n:\n");
+	fprintf(stderr, "\t\t\t\t Note: The following are valid values for v11n:");
+
 	VersificationMgr *vmgr = VersificationMgr::getSystemVersificationMgr();
 	StringList av11n = vmgr->getVersificationSystems();
 	for (StringList::iterator loop = av11n.begin(); loop != av11n.end(); loop++) {
-		fprintf(stderr, "\t\t\t\t\t%s\n", (*loop).c_str());
+		if ((distance(av11n.begin(), loop) % 3) == 0) {
+			fprintf(stderr, "\n\t\t\t\t   %-12s", (*loop).c_str());
+		}
+		else {
+			fprintf(stderr, "\t%-12s", (*loop).c_str());
+		}
 	}
-	fprintf(stderr, "  -d <flags>\t\t turn on debugging (default is 0)\n");
-	fprintf(stderr, "\t\t\t\t Note: This flag may change in the future.\n");
-	fprintf(stderr, "\t\t\t\t Flags: The following are valid values:\n");
-	fprintf(stderr, "\t\t\t\t\t0   - no debugging\n");
-	fprintf(stderr, "\t\t\t\t\t1   - writes to module, very verbose\n");
-	fprintf(stderr, "\t\t\t\t\t2   - verse start and end\n");
-	fprintf(stderr, "\t\t\t\t\t4   - quotes, esp. Words of Christ\n");
-	fprintf(stderr, "\t\t\t\t\t8   - titles\n");
-	fprintf(stderr, "\t\t\t\t\t16  - inter-verse material\n");
-	fprintf(stderr, "\t\t\t\t\t32  - BSP to BCV transformations\n");
-	fprintf(stderr, "\t\t\t\t\t64  - v11n exceptions\n");
-	fprintf(stderr, "\t\t\t\t\t128 - parsing of osisID and osisRef\n");
-	fprintf(stderr, "\t\t\t\t\t256 - internal stack\n");
-	fprintf(stderr, "\t\t\t\t\t512 - miscellaneous\n");
-	fprintf(stderr, "\t\t\t\t This argument can be used more than once. (Or\n");
-	fprintf(stderr, "\t\t\t\t the flags may be added together.)\n");
+	fprintf(stderr, "\n");
+	
+	if (verboseHelp) {
+		fprintf(stderr, "  -d <flags>\t\t turn on debugging (default is 0)\n");
+		fprintf(stderr, "\t\t\t\t Note: This flag may change in the future.\n");
+		fprintf(stderr, "\t\t\t\t Flags: The following are valid values:\n");
+		fprintf(stderr, "\t\t\t\t\t0   - no debugging\n");
+		fprintf(stderr, "\t\t\t\t\t1   - writes to module, very verbose\n");
+		fprintf(stderr, "\t\t\t\t\t2   - verse start and end\n");
+		fprintf(stderr, "\t\t\t\t\t4   - quotes, esp. Words of Christ\n");
+		fprintf(stderr, "\t\t\t\t\t8   - titles\n");
+		fprintf(stderr, "\t\t\t\t\t16  - inter-verse material\n");
+		fprintf(stderr, "\t\t\t\t\t32  - BSP to BCV transformations\n");
+		fprintf(stderr, "\t\t\t\t\t64  - v11n exceptions\n");
+		fprintf(stderr, "\t\t\t\t\t128 - parsing of osisID and osisRef\n");
+		fprintf(stderr, "\t\t\t\t\t256 - internal stack\n");
+		fprintf(stderr, "\t\t\t\t\t512 - miscellaneous\n");
+		fprintf(stderr, "\t\t\t\t This argument can be used more than once. (Or\n");
+		fprintf(stderr, "\t\t\t\t the flags may be added together.)\n");
+	}
+	fprintf(stderr, "  -h \t\t\t print verbose usage text\n");
+	
 	fprintf(stderr, "\n");
 	fprintf(stderr, "See http://www.crosswire.org/wiki/osis2mod for more details.\n");
 	fprintf(stderr, "\n");
@@ -1532,6 +1552,14 @@ void processOSIS(istream& infile) {
 int main(int argc, char **argv) {
 
 	fprintf(stderr, "You are running osis2mod: $Rev$\n");
+	
+	if (argc > 1) {
+		for (int i = 1; i < argc; i++) {
+			if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
+				usage(*argv, "", true);
+			}
+		}
+	}
 
 	// Let's test our command line arguments
 	if (argc < 3) {
