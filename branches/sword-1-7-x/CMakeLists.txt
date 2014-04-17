@@ -15,7 +15,7 @@
 # A CMake port of the SWORD build system... we hope
 PROJECT(libsword CXX C)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6.0)
-SET(SWORD_VERSION 1.7.2)
+SET(SWORD_VERSION 1.7.3)
 
 # Make sure it's an out-of-stream build
 IF(${CMAKE_CURRENT_BINARY_DIR} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
@@ -270,6 +270,7 @@ ENDIF(NOT SWORD_BUILD_UTILS STREQUAL "No")
 
 IF(SWORD_BUILD_EXAMPLES STREQUAL "Yes")
 	ADD_SUBDIRECTORY("${CMAKE_CURRENT_SOURCE_DIR}/examples/cmdline")
+	ADD_SUBDIRECTORY("${CMAKE_CURRENT_SOURCE_DIR}/examples/tasks")
 ENDIF(SWORD_BUILD_EXAMPLES STREQUAL "Yes")
 
 ##############################################################################################

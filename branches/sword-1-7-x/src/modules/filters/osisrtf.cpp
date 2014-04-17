@@ -4,7 +4,7 @@
  *
  * $Id$ *
  *
- * Copyright 2003-2013 CrossWire Bible Society (http://www.crosswire.org)
+ * Copyright 2003-2014 CrossWire Bible Society (http://www.crosswire.org)
  *	CrossWire Bible Society
  *	P. O. Box 2528
  *	Tempe, AZ  85280-2528
@@ -284,7 +284,7 @@ bool OSISRTF::handleToken(SWBuf &buf, const char *token, BasicFilterUserData *us
 		// Milestoned paragraphs, created by osis2mod
 		// <div type="paragraph" sID.../>
 		// <div type="paragraph" eID.../>
-		else if (tag.isEmpty() && !strcmp(tag.getName(), "div") && tag.getAttribute("type") && !strcmp(tag.getAttribute("type"), "paragraph")) {
+		else if (tag.isEmpty() && !strcmp(tag.getName(), "div") && tag.getAttribute("type") && (!strcmp(tag.getAttribute("type"), "x-p") || !strcmp(tag.getAttribute("type"), "paragraph"))) {
 			// <div type="paragraph"  sID... />
 			if (tag.getAttribute("sID")) {	// non-empty start tag
 				outText("{\\fi200\\par}", buf, u);
