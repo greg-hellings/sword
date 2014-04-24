@@ -31,8 +31,6 @@ SET(test_PROGRAMS
 	localetest
 	mgrtest
 	modtest
-	osistest
-	ldtest
 	parsekey
 	rawldidxtest
 	romantest
