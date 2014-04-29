@@ -1,5 +1,7 @@
 API ChangeLog
 
+27-Apr-2014	Troy A. Griffitts <scribe@crosswire.org>
+	Added C# bindings contributed by Daniel Hughes <trampster@gmail.com>
 
 * Release 1.7.0 *
 
