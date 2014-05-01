@@ -120,7 +120,6 @@ void doquery(unsigned long maxverses = -1, unsigned char outputformat = FMT_PLAI
 	ListKey listkey;
 	SectionMap::iterator sit;
 	ConfigEntMap::iterator eit;
-	const char * DEFAULT_FONT = "Gentium";
 	SWModule *target;
 	
 	char *font = 0;
