@@ -44,27 +44,14 @@
 #include <versekey.h>
 
 #include <ztext.h>
-#include <ztext4.h>
 #include <lzsscomprs.h>
-#ifndef EXCLUDEZLIB
 #include <zipcomprs.h>
-#endif
-#ifndef EXCLUDEBZIP2
-#include <bz2comprs.h>
-#endif
-#ifndef EXCLUDEXZ
-#include <xzcomprs.h>
-#endif
 #include <cipherfil.h>
 
 #ifdef _ICU_
 #include <utf8nfc.h>
 #include <latin1utf8.h>
-#include <utf8scsu.h>
-#include <scsuutf8.h>
 #endif
-#include <utf8utf16.h>
-#include <utf16utf8.h>
 
 #ifndef NO_SWORD_NAMESPACE
 using namespace sword;
@@ -95,9 +82,6 @@ const int EXIT_BAD_NESTING =   5; // BSP or BCV nesting is bad
 UTF8NFC    normalizer;
 Latin1UTF8 converter;
 #endif
-SWFilter*  outputEncoder = NULL;
-SWFilter*  outputDecoder = NULL;
-
 int normalized = 0;
 int converted  = 0;
 
@@ -129,8 +113,7 @@ bool isOSISAbbrev(const char *buf) {
  * U-00000000 - U-0000007F  0nnnnnnn
  * U-00000080 - U-000007FF  110nnnnn  10nnnnnn
  * U-00000800 - U-0000FFFF  1110nnnn  10nnnnnn  10nnnnnn
- * U-00010000 - U-0010FFFF  11110nnn  10nnnnnn  10nnnnnn  10nnnnnn
- *
+ * U-00010000 - U-001FFFFF  11110nnn  10nnnnnn  10nnnnnn  10nnnnnn
  * Note:
  *   1.  The latest UTF-8 RFC allows for a max of 4 bytes.
  *       Earlier allowed 6.
@@ -542,11 +525,6 @@ void writeEntry(SWBuf &text, bool force = false) {
 			}
 		}
 
-		// If the desired output encoding is non-UTF-8, convert to that encoding
-		if (outputEncoder) {
-			outputEncoder->processText(activeVerseText, (SWKey *)2);  // note the hack of 2 to mimic a real key. TODO: remove all hacks
-		}
-
 		// If the entry already exists, then append this entry to the text.
 		// This is for verses that are outside the chosen versification. They are appended to the prior verse.
 		// The space should not be needed if we retained verse tags.
@@ -554,16 +532,7 @@ void writeEntry(SWBuf &text, bool force = false) {
 			module->flush();
 			SWBuf currentText = module->getRawEntry();
 			cout << "INFO(WRITE): Appending entry: " << currentVerse.getOSISRef() << ": " << activeVerseText << endl;
-
-			// If we have a non-UTF-8 encoding, we should decode it before concatenating, then re-encode it
-			if (outputDecoder) {
-				outputDecoder->processText(activeVerseText, (SWKey *)2);
-				outputDecoder->processText(currentText, (SWKey *)2);
-			}
 			activeVerseText = currentText + " " + activeVerseText;
-			if (outputEncoder) {
-				outputEncoder->processText(activeVerseText, (SWKey *)2);
-			}
 		}
 
 		if (debug & DEBUG_WRITE) {
@@ -992,7 +961,7 @@ bool handleToken(SWBuf &text, XMLTag token) {
 
 			if (tokenName != topToken.getName()) {
 				cout << "FATAL(NESTING): " << currentOsisID << ": Expected " << topToken.getName() << " found " << tokenName << endl;
-//				exit(EXIT_BAD_NESTING);	// (OSK) I'm sure this validity check is a good idea, but there's a bug somewhere that's killing the converter here.
+//				exit(EXIT_BAD_NESTING);	// (OSK) I'm sure this validity check is a good idea, but there's a but somewhere that's killing the converter here.
 						// So I'm disabling this line. Unvalidated OSIS files shouldn't be run through the converter anyway.
 						// (DM) This has nothing to do with well-form or valid. It checks milestoned elements for proper nesting.
 			}
@@ -1319,18 +1288,15 @@ void usage(const char *app, const char *error = 0, const bool verboseHelp = fals
 	fprintf(stderr, "  <osisDoc>\t\t path to the validated OSIS document, or '-' to\n");
 	fprintf(stderr, "\t\t\t\t read from standard input\n");
 	fprintf(stderr, "  -a\t\t\t augment module if exists (default is to create new)\n");
-	fprintf(stderr, "  -z <l|z|b|x>\t\t compression type (default: none)\n");
-	fprintf(stderr, "\t\t\t\t l - LZSS; z - ZIP; b - bzip2; x - xz\n");
-	fprintf(stderr, "  -b <2|3|4>\t\t compression block size (default: 4)\n");
+	fprintf(stderr, "  -z\t\t\t use ZIP compression (default no compression)\n");
+	fprintf(stderr, "  -Z\t\t\t use LZSS compression (default no compression)\n");
+	fprintf(stderr, "  -b <2|3|4>\t\t compression block size (default 4):\n");
 	fprintf(stderr, "\t\t\t\t 2 - verse; 3 - chapter; 4 - book\n");
-	fprintf(stderr, "  -l <1-9>\t\t compression level (default varies by compression type)\n");
 	fprintf(stderr, "  -c <cipher_key>\t encipher module using supplied key\n");
 	fprintf(stderr, "\t\t\t\t (default no enciphering)\n");
 
-#ifdef _ICU_
-	fprintf(stderr, "  -e <1|2|s>\t\t convert Unicode encoding (default: 1)\n");
-	fprintf(stderr, "\t\t\t\t 1 - UTF-8 ; 2 - UTF-16 ; s - SCSU\n");
-	fprintf(stderr, "  -N\t\t\t do not normalize to NFC\n");
+#ifdef _ICU_       
+	fprintf(stderr, "  -N\t\t\t do not convert UTF-8 or normalize UTF-8 to NFC\n");
 	if (verboseHelp) {
 		fprintf(stderr, "\t\t\t\t (default is to convert to UTF-8, if needed,\n");
 		fprintf(stderr, "\t\t\t\t  and then normalize to NFC)\n");
@@ -1612,25 +1578,19 @@ int main(int argc, char **argv) {
 	int entrySize          = 0;
 	SWBuf cipherKey        = "";
 	SWCompress *compressor = 0;
-	int compLevel      = 0;
 
 	for (int i = 3; i < argc; i++) {
 		if (!strcmp(argv[i], "-a")) {
 			append = 1;
 		}
 		else if (!strcmp(argv[i], "-z")) {
+			if (compType.size()) usage(*argv, "Cannot specify both -z and -Z");
+			if (entrySize) usage(*argv, "Cannot specify both -z and -s");
 			compType = "ZIP";
-			if (i+1 < argc && argv[i+1][0] != '-') {
-				switch (argv[++i][0]) {
-				case 'l': compType = "LZSS"; break;
-				case 'z': compType = "ZIP"; break;
-				case 'b': compType = "BZIP2"; break;
-				case 'x': compType = "XZ"; break;
-				}
-			}
 		}
 		else if (!strcmp(argv[i], "-Z")) {
 			if (compType.size()) usage(*argv, "Cannot specify both -z and -Z");
+			if (entrySize) usage(*argv, "Cannot specify both -Z and -s");
 			compType = "LZSS";
 		}
 		else if (!strcmp(argv[i], "-b")) {
@@ -1643,30 +1603,6 @@ int main(int argc, char **argv) {
 		else if (!strcmp(argv[i], "-N")) {
 			normalize = false;
 		}
-		else if (!strcmp(argv[i], "-e")) {
-			if (i+1 < argc) {
-				switch (argv[++i][0]) {
-				case '1': // leave as UTF-8
-					outputEncoder = NULL;
-					outputDecoder = NULL;
-					break;
-
-				case '2':
-					outputEncoder = new UTF8UTF16();
-					outputDecoder = new UTF16UTF8();
-					break;
-#ifdef _ICU_
-				case 's':
-					outputEncoder = new UTF8SCSU();
-					outputDecoder = new SCSUUTF8();
-					break;
-#endif
-				default:
-					outputEncoder = NULL;
-					outputDecoder = NULL;
-				}
-			} 
-		}
 		else if (!strcmp(argv[i], "-c")) {
 			if (i+1 < argc) cipherKey = argv[++i];
 			else usage(*argv, "-c requires <cipher_key>");
@@ -1676,6 +1612,7 @@ int main(int argc, char **argv) {
 			else usage(*argv, "-v requires <v11n>");
 		}
 		else if (!strcmp(argv[i], "-s")) {
+			if (compType.size()) usage(*argv, "Cannot specify -s and -z or -Z");
 			if (i+1 < argc) {
 				entrySize = atoi(argv[++i]);
 				if (entrySize == 2 || entrySize == 4) {
@@ -1691,48 +1628,20 @@ int main(int argc, char **argv) {
 			if (i+1 < argc) debug |= atoi(argv[++i]);
 			else usage(*argv, "-d requires <flags>");
 		}
-		else if (!strcmp(argv[i], "-l")) {
-			if (i+1 < argc) {
-				compLevel = atoi(argv[++i]);
-			}		      
-			else usage(*argv, "-l requires a value from 1-9");
-			
-			if (compLevel < 0 || compLevel > 10) {
-				usage(*argv, "-l requires a value from 1-9");
-			}
-		}
 		else usage(*argv, (((SWBuf)"Unknown argument: ")+ argv[i]).c_str());
 	}
 
 	if (isCommentary) isCommentary = true;	// avoid unused warning for now
 
-	if (compType == "LZSS") {
-		compressor = new LZSSCompress();
-	}
-	else if (compType == "ZIP") {
+	if (compType == "ZIP") {
 #ifndef EXCLUDEZLIB
 		compressor = new ZipCompress();
 #else
-		usage(*argv, "ERROR: SWORD library not compiled with ZIP compression support.\n\tBe sure libz is available when compiling SWORD library");
+		usage(*argv, "ERROR: SWORD library not compiled with ZIP compression support.\n\tBe sure libzip is available when compiling SWORD library");
 #endif
 	}
-	else if (compType == "BZIP2") {
-#ifndef EXCLUDEBZIP2
-		compressor = new Bzip2Compress();
-#else
-		usage(*argv, "ERROR: SWORD library not compiled with bzip2 compression support.\n\tBe sure libbz2 is available when compiling SWORD library");
-#endif
-	}
-	else if (compType == "XZ") {
-#ifndef EXCLUDEXZ
-		compressor = new XzCompress();
-#else
-		usage(*argv, "ERROR: SWORD library not compiled with xz compression support.\n\tBe sure liblzma is available when compiling SWORD library");
-#endif		
-	}
-
-	if (compressor && compLevel > 0) {
-		compressor->setLevel(compLevel);
+	else if (compType == "LZSS") {
+		compressor = new LZSSCompress();
 	}
 
 #ifndef _ICU_
@@ -1743,24 +1652,16 @@ int main(int argc, char **argv) {
 #endif
 
 	if (debug & DEBUG_OTHER) {
-		cout << "DEBUG(ARGS):\n\tpath: " << path << "\n\tosisDoc: " << osisDoc << "\n\tcreate: " << append << "\n\tcompressType: " << compType << "\n\tblockType: " << iType << "\n\tcompressLevel: " << compLevel << "\n\tcipherKey: " << cipherKey.c_str() << "\n\tnormalize: " << normalize << endl;
+		cout << "DEBUG(ARGS):\n\tpath: " << path << "\n\tosisDoc: " << osisDoc << "\n\tcreate: " << append << "\n\tcompressType: " << compType << "\n\tblockType: " << iType << "\n\tcipherKey: " << cipherKey.c_str() << "\n\tnormalize: " << normalize << endl;
 	}
 
 	if (!append) {	// == 0 then create module
 	// Try to initialize a default set of datafiles and indicies at our
 	// datapath location passed to us from the user.
 		if (compressor) {
-			if (entrySize == 4) {
-				if (zText4::createModule(path, iType, v11n)) {
-					fprintf(stderr, "ERROR: %s: couldn't create module at path: %s \n", program, path);
-					exit(EXIT_NO_CREATE);
-				}
-			}
-			else {
-				if (zText::createModule(path, iType, v11n)) {
-					fprintf(stderr, "ERROR: %s: couldn't create module at path: %s \n", program, path);
-					exit(EXIT_NO_CREATE);
-				}
+			if (zText::createModule(path, iType, v11n)) {
+				fprintf(stderr, "ERROR: %s: couldn't create module at path: %s \n", program, path);
+				exit(EXIT_NO_CREATE);
 			}
 		}
 		else if (entrySize == 4) {
@@ -1779,10 +1680,9 @@ int main(int argc, char **argv) {
 
 	// Do some initialization stuff
 	if (compressor) {
-		if (entrySize == 4) {
-			// Create a compressed text module allowing very large entries
-			// Taking defaults except for first, fourth, fifth and last argument
-			module = new zText4(
+		// Create a compressed text module allowing very large entries
+		// Taking defaults except for first, fourth, fifth and last argument
+		module = new zText(
 				path,		// ipath
 				0,		// iname
 				0,		// idesc
@@ -1795,24 +1695,6 @@ int main(int argc, char **argv) {
 				0,		// lang
 				v11n		// versification
 		       );
-		}
-		else {
-			// Create a compressed text module allowing reasonable sized entries
-			// Taking defaults except for first, fourth, fifth and last argument
-			module = new zText(
-				path,		// ipath
-				0,		// iname
-				0,		// idesc
-				iType,		// iblockType
-				compressor,	// icomp
-				0,		// idisp
-				ENC_UNKNOWN,	// enc
-				DIRECTION_LTR,	// dir
-				FMT_UNKNOWN,	// markup
-				0,		// lang
-				v11n		// versification
-		       );
-		}
 	}
 	else if (entrySize == 4) {
 		// Create a raw text module allowing very large entries
@@ -1877,10 +1759,6 @@ int main(int argc, char **argv) {
 	delete module;
 	if (cipherFilter)
 		delete cipherFilter;
-	if (outputEncoder)
-		delete outputEncoder;
-	if (outputDecoder)
-		delete outputDecoder;
 
 	fprintf(stderr, "SUCCESS: %s: has finished its work and will now rest\n", program);
 	exit(0); // success

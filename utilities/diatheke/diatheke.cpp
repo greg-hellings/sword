@@ -47,7 +47,7 @@ void printsyntax() {
 	fprintf (stderr, "    [-l locale] <-k query_key>\n");
 	fprintf (stderr, "\n");
 	fprintf (stderr, "If <book> is \"system\" you may use these system keys: \"modulelist\",\n");
-	fprintf (stderr, "\"modulelistnames\", \"bibliography\", and \"localelist\".");
+	fprintf (stderr, "\"modulelistnames\", and \"localelist\".");
 	fprintf (stderr, "\n");
 	fprintf (stderr, "Valid search_type values are: phrase (default), regex, multiword,\n");
 	fprintf (stderr, "  attribute, lucene, multilemma.\n");
@@ -60,11 +60,9 @@ void printsyntax() {
 	fprintf (stderr, "  x (Encoded Transliterations), t (Algorithmic Transliterations via ICU)\n");
 
 	fprintf (stderr, "Maximum verses may be any integer value\n");
-	fprintf (stderr, "Valid output_format values are: CGI, GBF, HTML, HTMLHREF, LaTeX, OSIS, RTF,\n");
- 	fprintf (stderr, "  ThML, WEBIF, XHTML, plain, and internal (def)\n");
- 	fprintf (stderr, "The option LaTeX will produce a compilable document, but may well require\n");
-	fprintf (stderr, "  tweaking to be usable.\n");
-	fprintf (stderr, "Valid output_encoding values are: Latin1, UTF8 (def), UTF16, HTML, RTF, and SCSU\n");
+	fprintf (stderr, "Valid output_format values are: GBF, ThML, RTF, HTML, HTMLHREF, XHTML, OSIS,\n");
+	fprintf (stderr, "  CGI, and plain (def)\n");
+	fprintf (stderr, "Valid output_encoding values are: Latin1, UTF8 (def), UTF16, HTML, and RTF\n");
 	fprintf (stderr, "Valid locale values depend on installed locales. en is default.\n");
 	fprintf (stderr, "The query_key must be the last argument because all following\n");
 	fprintf (stderr, "  arguments are added to the key.\n");
@@ -80,7 +78,7 @@ void printsyntax() {
 int main(int argc, char **argv)
 {
 	int maxverses = -1;
-	unsigned char outputformat = FMT_INTERNAL, searchtype = ST_NONE, outputencoding = ENC_UTF8;
+	unsigned char outputformat = FMT_PLAIN, searchtype = ST_NONE, outputencoding = ENC_UTF8;
 	unsigned long optionfilters = OP_NONE;
  	char *text = 0, *locale = 0, *ref = 0, *range = 0;
 	char script[] = "Latin"; // for the moment, only this target script is supported
@@ -89,17 +87,17 @@ int main(int argc, char **argv)
 	char runquery = 0; // used to check that we have enough arguments to perform a legal query
 	// (a querytype & text = 1 and a ref = 2)
 	
-	for (int i = 1; i < argc; ++i) {
+	for (int i = 1; i < argc; i++) {
 		if (!::stricmp("-b", argv[i])) {
 			if (i+1 <= argc) {
-				++i;
-				text = argv[i];
+				text = argv[i+1];
+				i++;
 				runquery |= RQ_BOOK;
 			}
 		}
 		else if (!::stricmp("-s", argv[i])) {
 			if (i+1 <= argc) {
-				++i;
+				i++;
 				if (!::stricmp("phrase", argv[i])) {
 					searchtype = ST_PHRASE;
 				}
@@ -127,131 +125,129 @@ int main(int argc, char **argv)
 		}
  		else if (!::stricmp("-r", argv[i])) {
  			if (i+1 <= argc) {
-				++i;
- 				range = argv[i];
+ 				range = argv[i+1];
+ 				i++;
  			}	
  		}
 		else if (!::stricmp("-l", argv[i])) {
 			if (i+1 <= argc) {
-				++i;
-				locale = argv[i];
+				locale = argv[i+1];
+				i++;
 			}
 		}
 		else if (!::stricmp("-m", argv[i])) {
 			if (i+1 <= argc) {
-				++i;
-				maxverses = atoi(argv[i]);
+				maxverses = atoi(argv[i+1]);
+				i++;
 			}
 		}
 		else if (!::stricmp("-o", argv[i])) {
 			if (i+1 <= argc) {
-				++i;
-				if (strchr(argv[i], 'f'))
+				if (strchr(argv[i+1], 'f'))
 					optionfilters |= OP_FOOTNOTES;
-				if (strchr(argv[i], 'n'))
+				if (strchr(argv[i+1], 'n'))
 					optionfilters |= OP_STRONGS;
-				if (strchr(argv[i], 'h'))
+				if (strchr(argv[i+1], 'h'))
 					optionfilters |= OP_HEADINGS;
-				if (strchr(argv[i], 'm'))
+				if (strchr(argv[i+1], 'm'))
 					optionfilters |= OP_MORPH;
-				if (strchr(argv[i], 'c'))
+				if (strchr(argv[i+1], 'c'))
 					optionfilters |= OP_CANTILLATION;
-				if (strchr(argv[i], 'v'))
+				if (strchr(argv[i+1], 'v'))
 					optionfilters |= OP_HEBREWPOINTS;
-				if (strchr(argv[i], 'a'))
+				if (strchr(argv[i+1], 'a'))
 					optionfilters |= OP_GREEKACCENTS;
-				if (strchr(argv[i], 'l'))
+				if (strchr(argv[i+1], 'l'))
 					optionfilters |= OP_LEMMAS;
-				if (strchr(argv[i], 's'))
+				if (strchr(argv[i+1], 's'))
 					optionfilters |= OP_SCRIPREF;
-				if (strchr(argv[i], 'r'))
+				if (strchr(argv[i+1], 'r'))
 					optionfilters |= OP_ARSHAPE;
-				if (strchr(argv[i], 'b'))
+				if (strchr(argv[i+1], 'b'))
 					optionfilters |= OP_BIDI;
-				if (strchr(argv[i], 'w'))
+				if (strchr(argv[i+1], 'w'))
 					optionfilters |= OP_REDLETTERWORDS;
-				if (strchr(argv[i], 'p'))
+				if (strchr(argv[i+1], 'p'))
 					optionfilters |= OP_ARABICPOINTS;
-				if (strchr(argv[i], 'g'))
+				if (strchr(argv[i+1], 'g'))
 					optionfilters |= OP_GLOSSES;
-				if (strchr(argv[i], 'x'))
+				if (strchr(argv[i+1], 'x'))
 					optionfilters |= OP_XLIT;
-				if (strchr(argv[i], 'e'))
+				if (strchr(argv[i+1], 'e'))
 					optionfilters |= OP_ENUM;
-				if (strchr(argv[i], 't'))
+				if (strchr(argv[i+1], 't'))
 					optionfilters |= OP_TRANSLITERATOR;
+				i++;
 			}
 		}
 		else if (!::stricmp("-f", argv[i])) {
 			if (i+1 <= argc) {
-				++i;
-				if (!::stricmp("thml", argv[i])) {
+				if (!::stricmp("thml", argv[i+1])) {
 					outputformat = FMT_THML;
+					i++;
 				}
-				else if (!::stricmp("cgi", argv[i])) {
+				else if (!::stricmp("cgi", argv[i+1])) {
 					outputformat = FMT_CGI;
+					i++;
 				}
-				else if (!::stricmp("gbf", argv[i])) {
+				else if (!::stricmp("gbf", argv[i+1])) {
 					outputformat = FMT_GBF;
+					i++;
 				}
-				else if (!::stricmp("htmlhref", argv[i])) {
+				else if (!::stricmp("htmlhref", argv[i+1])) {
 					outputformat = FMT_HTMLHREF;
+					i++;
 				}
-				else if (!::stricmp("html", argv[i])) {
+				else if (!::stricmp("html", argv[i+1])) {
 					outputformat = FMT_HTML;
+					i++;
 				}
-				else if (!::stricmp("xhtml", argv[i])) {
+				else if (!::stricmp("xhtml", argv[i+1])) {
 					outputformat = FMT_XHTML;
+					i++;
 				}
-				else if (!::stricmp("rtf", argv[i])) {
+				else if (!::stricmp("rtf", argv[i+1])) {
 					outputformat = FMT_RTF;
+					i++;
 				}
-				else if (!::stricmp("osis", argv[i])) {
+				else if (!::stricmp("osis", argv[i+1])) {
 					outputformat = FMT_OSIS;
+					i++;
 				}
-				else if (!::stricmp("latex", argv[i])) {
-					outputformat = FMT_LATEX;
-				}
-				else if (!::stricmp("plain", argv[i])) {
-					outputformat = FMT_PLAIN;
-				}
-				else if (!::stricmp("webif", argv[i])) {
-					outputformat = FMT_WEBIF;
-				}
-				else if (!::stricmp("internal", argv[i])) {
-					outputformat = FMT_INTERNAL;
-				}
+				else i++;
 			}
 		}
 		else if (!::stricmp("-e", argv[i])) {
 			if (i+1 <= argc) {
-				++i;
-				if (!::stricmp("utf8", argv[i])) {
+				if (!::stricmp("utf8", argv[i+1])) {
 					outputencoding = ENC_UTF8;
+					i++;
 				}
-				else if (!::stricmp("rtf", argv[i])) {
+				else if (!::stricmp("rtf", argv[i+1])) {
 					outputencoding = ENC_RTF;
+					i++;
 				}
-				else if (!::stricmp("html", argv[i])) {
+				else if (!::stricmp("html", argv[i+1])) {
 					outputencoding = ENC_HTML;
+					i++;
 				}
-				else if (!::stricmp("latin1", argv[i])) {
+				else if (!::stricmp("latin1", argv[i+1])) {
 					outputencoding = ENC_LATIN1;
+					i++;
 				}
-				else if (!::stricmp("utf16", argv[i])) {
+				else if (!::stricmp("utf16", argv[i+1])) {
 					outputencoding = ENC_UTF16;
+					i++;
 				}
-				else if (!::stricmp("scsu", argv[i])) {
-					outputencoding = ENC_SCSU;
-				}
+				else i++;
 			}
 		}
 		else if (!::stricmp("-k", argv[i])) {
-			++i;	
+			i++;	
 			if (i < argc) {
 				SWBuf key = argv[i];
-				++i;
-				for (; i < argc; ++i) {
+				i++;
+				for (; i < argc; i++) {
 					if (!::stricmp("-h", argv[i]) || !::stricmp("--help", argv[i]))
 						printsyntax();
 					key = key + " " + argv[i];
@@ -264,17 +260,17 @@ int main(int argc, char **argv)
 		}
 		else if (!::stricmp("-v", argv[i])) {
 			if (i+1 <= argc) {
-				++i;
-				variants = atoi(argv[i]);
+				variants = atoi(argv[i+1]);
 				optionfilters |= OP_VARIANTS;
+				i++;
 			}
 		}
 		/*
 		else if (!::stricmp("-t", argv[i])) {
 			if (i+1 <= argc) {
-				++i;
-				script = argv[i];
+				script = argv[i+1];
 				optionfilters |= OP_TRANSLITERATOR;
+				i++;
 			}
 		}
 		*/

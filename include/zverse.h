@@ -61,6 +61,8 @@ public:
 #define	BOOKBLOCKS 4
 
 	static const char uniqueIndexID[];
+	char nl;
+
 
 	// fileMode default = RDONLY
 	zVerse(const char *ipath, int fileMode = -1, int blockType = CHAPTERBLOCKS, SWCompress * icomp = 0);

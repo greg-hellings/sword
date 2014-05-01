@@ -12,7 +12,7 @@ noinst_PROGRAMS = utf8norm ciphertest keytest mgrtest parsekey versekeytest \
 			compnone complzss localetest introtest indextest \
 			configtest keycast romantest testblocks filtertest \
 			rawldidxtest lextest swaptest swbuftest xmltest \
-			webiftest striptest ldtest osistest bibliotest
+			webiftest striptest osistest bibliotest
 
 if HAVE_ICU
 ICUPROG = icutest translittest tlitmgrtest
@@ -68,7 +68,6 @@ swbuftest_SOURCES = swbuftest.cpp
 webiftest_SOURCES = webiftest.cpp
 striptest_SOURCES = striptest.cpp
 xmltest_SOURCES = xmltest.cpp
-ldtest_SOURCES = ldtest.cpp
 osistest_SOURCES = osistest.cpp
 bibliotest_SOURCES = bibliotest.cpp
 
