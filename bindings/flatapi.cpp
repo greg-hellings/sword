@@ -941,26 +941,6 @@ SWHANDLE SWDLLEXPORT org_crosswire_sword_SWMgr_new() {
 	return (SWHANDLE) new HandleSWMgr(new WebMgr(sysConf));
 }
 
-/*
- * Class:     org_crosswire_sword_SWMgr
- * Method:    new
- * Signature: ()V
- */
-SWHANDLE SWDLLEXPORT org_crosswire_sword_SWMgr_newWithPath(const char *path) { 
-	SWBuf confPath = path;
-	if (!confPath.endsWith("/")) confPath.append('/');
-	SWBuf modsd = confPath + "mods.d";
-	// be sure we have at least some config file already out there
-	if (!FileMgr::existsFile(modsd.c_str())) {
-		modsd.append("/globals.conf");
-		FileMgr::createParent(modsd.c_str());
-		SWConfig config(modsd.c_str());
-		config["Globals"]["HiAndroid"] = "weeee";
-		config.Save();
-	}
-	return (SWHANDLE) new HandleSWMgr(new WebMgr(confPath.c_str()));
-}
-
 
 /*
  * Class:     org_crosswire_sword_SWMgr
@@ -1289,17 +1269,6 @@ SWHANDLE SWDLLEXPORT org_crosswire_sword_InstallMgr_new
 	hinstmgr->statusReporter.init(statusReporter);
 	hinstmgr->installMgr = new InstallMgr(baseDir, &(hinstmgr->statusReporter));
 	return (SWHANDLE) hinstmgr;
-}
-
-/*
- * Class:     org_crosswire_sword_InstallMgr
- * Method:    delete
- * Signature: ()V
- */
-void SWDLLEXPORT org_crosswire_sword_InstallMgr_delete
-  (SWHANDLE hInstallMgr) {
-	HandleInstMgr *hinstMgr = (HandleInstMgr *)hInstallMgr;
-	if (hinstMgr) delete hinstMgr;
 }
 
 /*

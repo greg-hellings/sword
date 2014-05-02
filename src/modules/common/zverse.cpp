@@ -67,6 +67,7 @@ zVerse::zVerse(const char *ipath, int fileMode, int blockType, SWCompress *icomp
 
 	SWBuf buf;
 
+	nl = '\n';
 	path = 0;
 	cacheBufIdx = -1;
 	cacheTestament = 0;

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -19,13 +19,13 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -41,10 +41,10 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)Debug\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)Debug\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)Release\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)Release\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\Release\</IntDir>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
@@ -63,7 +63,7 @@
     <ClCompile>
       <AdditionalOptions>/D _CRT_SECURE_NO_DEPRECATE %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../include;../../include/internal/regex;../../../icu-sword/include;../../src/utilfuns/win32;../../../curl/include;../../../xz/include;../../../bzip2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../include;../../include/internal/regex;../../../icu-sword/include;../../src/utilfuns/win32;../../../curl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_DEBUG;_ICU_;_ICUSWORD_;WIN32;_LIB;REGEX_MALLOC;SWMAKINGDLL;CURLAVAILABLE;CURL_STATICLIB;USBINARY;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -85,22 +85,21 @@
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>libcurl_a.lib;ws2_32.lib;winmm.lib;wldap32.lib;icuuc.lib;icuin.lib;icudt.lib;libbz2.lib;liblzma.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>../../../curl/builds/libcurl-vc-x86-release-static-ipv6-sspi-spnego-winssl/lib;../../../icu-sword/lib;../../../bzip2/Release;../../../xz/bin_i486;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcurl_a.lib;ws2_32.lib;winmm.lib;wldap32.lib;icuuc.lib;icuin.lib;icudt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../../curl/builds/libcurl-vc10-x86-release-static-ipv6-sspi-spnego-winssl/lib;../../../icu-sword/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <ImageHasSafeExceptionHandlers>
       </ImageHasSafeExceptionHandlers>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>../../include;../../include/internal/regex;../../../icu-sword/include;../../src/utilfuns/win32;../../../curl/include;../../../xz/include;../../../bzip2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../include;../../include/internal/regex;../../../icu-sword/include;../../src/utilfuns/win32;../../../curl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;_ICU_;_ICUSWORD_;WIN32;_LIB;REGEX_MALLOC;SWMAKINGDLL;CURLAVAILABLE;CURL_STATICLIB;USBINARY;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>
       </StringPooling>
@@ -124,13 +123,11 @@
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>libcurl_a.lib;ws2_32.lib;winmm.lib;wldap32.lib;icuuc.lib;icuin.lib;icudt.lib;libbz2.lib;liblzma.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>../../../curl/builds/libcurl-vc-x86-release-static-ipv6-sspi-spnego-winssl/lib;../../../icu-sword/lib;../../../bzip2/Release;../../../xz/bin_i486;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcurl_a.lib;ws2_32.lib;winmm.lib;wldap32.lib;icuuc.lib;icuin.lib;icudt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../../curl/builds/libcurl-vc10-x86-release-static-ipv6-sspi-spnego-winssl/lib;../../../icu-sword/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -139,16 +136,11 @@
     <ClCompile Include="..\..\src\modules\filters\cipherfil.cpp" />
     <ClCompile Include="..\..\src\mgr\curlftpt.cpp" />
     <ClCompile Include="..\..\src\mgr\curlhttpt.cpp" />
-    <ClCompile Include="..\..\src\modules\filters\gbflatex.cpp" />
     <ClCompile Include="..\..\src\modules\filters\osisenum.cpp" />
     <ClCompile Include="..\..\src\modules\filters\osisglosses.cpp" />
-    <ClCompile Include="..\..\src\modules\filters\osislatex.cpp" />
     <ClCompile Include="..\..\src\modules\filters\osisxlit.cpp" />
     <ClCompile Include="..\..\src\modules\filters\osisreferencelinks.cpp" />
     <ClCompile Include="..\..\src\modules\filters\scsuutf8.cpp" />
-    <ClCompile Include="..\..\src\modules\filters\teilatex.cpp" />
-    <ClCompile Include="..\..\src\modules\filters\thmllatex.cpp" />
-    <ClCompile Include="..\..\src\modules\filters\utf8scsu.cpp" />
     <ClCompile Include="..\..\src\utilfuns\win32\dirent.cpp" />
     <ClCompile Include="..\..\src\mgr\encfiltmgr.cpp" />
     <ClCompile Include="..\..\src\modules\common\entriesblk.cpp" />
@@ -290,16 +282,13 @@
     <ClCompile Include="..\..\src\keys\versekey.cpp" />
     <ClCompile Include="..\..\src\keys\versetreekey.cpp" />
     <ClCompile Include="..\..\src\modules\comments\zcom\zcom.cpp" />
-    <ClCompile Include="..\..\src\modules\comments\zcom4\zcom4.cpp" />
     <ClCompile Include="..\..\src\modules\common\zipcomprs.cpp" />
     <ClCompile Include="..\..\src\modules\common\bz2comprs.cpp" />
     <ClCompile Include="..\..\src\modules\common\xzcomprs.cpp" />
     <ClCompile Include="..\..\src\modules\lexdict\zld\zld.cpp" />
     <ClCompile Include="..\..\src\modules\common\zstr.cpp" />
     <ClCompile Include="..\..\src\modules\texts\ztext\ztext.cpp" />
-    <ClCompile Include="..\..\src\modules\texts\ztext4\ztext4.cpp" />
     <ClCompile Include="..\..\src\modules\common\zverse.cpp" />
-    <ClCompile Include="..\..\src\modules\common\zverse4.cpp" />
     <ClCompile Include="..\..\src\utilfuns\zlib\zutil.c" />
   </ItemGroup>
   <ItemGroup>
@@ -335,7 +324,6 @@
     <ClInclude Include="..\..\include\gbfheadings.h" />
     <ClInclude Include="..\..\include\gbfhtml.h" />
     <ClInclude Include="..\..\include\gbfhtmlhref.h" />
-    <ClInclude Include="..\..\include\gbflatex.h" />
     <ClInclude Include="..\..\include\gbfmorph.h" />
     <ClInclude Include="..\..\include\gbfosis.h" />
     <ClInclude Include="..\..\include\gbfplain.h" />
@@ -361,7 +349,6 @@
     <ClInclude Include="..\..\include\osisglosses.h" />
     <ClInclude Include="..\..\include\osisheadings.h" />
     <ClInclude Include="..\..\include\osishtmlhref.h" />
-    <ClInclude Include="..\..\include\osislatex.h" />
     <ClInclude Include="..\..\include\osislemma.h" />
     <ClInclude Include="..\..\include\osismorph.h" />
     <ClInclude Include="..\..\include\osismorphsegmentation.h" />
@@ -421,7 +408,6 @@
     <ClInclude Include="..\..\include\swtext.h" />
     <ClInclude Include="..\..\include\swversion.h" />
     <ClInclude Include="..\..\include\sysdata.h" />
-    <ClInclude Include="..\..\include\teilatex.h" />
     <ClInclude Include="..\..\include\teixhtml.h" />
     <ClInclude Include="..\..\include\teihtmlhref.h" />
     <ClInclude Include="..\..\include\teiplain.h" />
@@ -431,7 +417,6 @@
     <ClInclude Include="..\..\include\thmlheadings.h" />
     <ClInclude Include="..\..\include\thmlhtml.h" />
     <ClInclude Include="..\..\include\thmlhtmlhref.h" />
-    <ClInclude Include="..\..\include\thmllatex.h" />
     <ClInclude Include="..\..\include\thmllemma.h" />
     <ClInclude Include="..\..\include\thmlmorph.h" />
     <ClInclude Include="..\..\include\thmlosis.h" />
@@ -459,7 +444,6 @@
     <ClInclude Include="..\..\include\utf8latin1.h" />
     <ClInclude Include="..\..\include\utf8nfc.h" />
     <ClInclude Include="..\..\include\utf8nfkd.h" />
-    <ClInclude Include="..\..\include\utf8scsu.h" />
     <ClInclude Include="..\..\include\utf8transliterator.h" />
     <ClInclude Include="..\..\include\utf8utf16.h" />
     <ClInclude Include="..\..\include\utilstr.h" />
@@ -468,7 +452,6 @@
     <ClInclude Include="..\..\include\versetreekey.h" />
     <ClInclude Include="..\..\include\versificationmgr.h" />
     <ClInclude Include="..\..\include\zcom.h" />
-    <ClInclude Include="..\..\include\zcom4.h" />
     <ClInclude Include="..\..\include\zconf.h" />
     <ClInclude Include="..\..\include\zipcomprs.h" />
     <ClInclude Include="..\..\include\bz2comprs.h" />
@@ -477,9 +460,7 @@
     <ClInclude Include="..\..\include\zlib.h" />
     <ClInclude Include="..\..\include\zstr.h" />
     <ClInclude Include="..\..\include\ztext.h" />
-    <ClInclude Include="..\..\include\ztext4.h" />
     <ClInclude Include="..\..\include\zverse.h" />
-    <ClInclude Include="..\..\include\zverse4.h" />
     <ClInclude Include="..\..\src\utilfuns\zlib\crc32.h" />
     <ClInclude Include="..\..\src\utilfuns\zlib\deflate.h" />
     <ClInclude Include="..\..\src\utilfuns\zlib\gzguts.h" />
