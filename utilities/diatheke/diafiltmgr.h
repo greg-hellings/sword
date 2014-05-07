@@ -24,7 +24,6 @@
 #define DIAFILTMGR_H
 
 #define FMT_CGI 127
-#define FMT_INTERNAL 126
 
 #include <encfiltmgr.h>
 
@@ -38,7 +37,6 @@ protected:
         SWFilter* fromgbf;
         SWFilter* fromplain;
         SWFilter* fromosis;
-        SWFilter* fromtei;
 
         char markup;
 

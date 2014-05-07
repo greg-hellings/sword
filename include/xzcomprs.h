@@ -24,8 +24,6 @@
 #ifndef XZCOMPRS_H
 #define XZCOMPRS_H
 
-#include <stdint.h>
-
 #include <swcomprs.h>
 
 #include <defs.h>
@@ -41,9 +39,6 @@ public:
 
 	virtual void Encode(void);
 	virtual void Decode(void);
-	virtual void setLevel(int l);
-private:
-	uint64_t memlimit; // memory usage limit during decompression
 };
 
 SWORD_NAMESPACE_END

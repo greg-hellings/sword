@@ -171,7 +171,6 @@ char SWModule::popError()
 	char retval = error;
 
 	error = 0;
-	if (!retval) retval = key->popError();
 	return retval;
 }
 
