@@ -295,7 +295,7 @@ char SWModule::setKey(const SWKey *ikey) {
 	if (oldKey)
 		delete oldKey;
 
-	return 0;
+	return error = key->popError();
 }
 
 
