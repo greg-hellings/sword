@@ -1,5 +1,9 @@
 API ChangeLog
 
+03-Dec-2014	Karl Kleinpaste <charcoal@users.sf.net>
+	Corrected anomalous OSIS highlighting output w/GHellings' patches in
+		src/modules/filters/osis{plain,xhtml}.cpp
+
 27-Apr-2014	Troy A. Griffitts <scribe@crosswire.org>
 	Added C# bindings contributed by Daniel Hughes <trampster@gmail.com>
 
