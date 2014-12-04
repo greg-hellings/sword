@@ -15,7 +15,7 @@
 
 @interface SwordDictionary (/* Private, class continuation */)
 /** private property */
-@property(readwrite, strong) NSMutableArray *keys;
+@property(readwrite, retain) NSMutableArray *keys;
 @end
 
 @interface SwordDictionary (PrivateAPI)
@@ -46,11 +46,11 @@
         *swModule = sword::TOP;
         swModule->getRawEntry();        
         while(![self error]) {
-            char *cStrKeyText = (char *)swModule->getKeyText();
+            char *cStrKeyText = (char *)swModule->KeyText();
             if(cStrKeyText) {
                 NSString *keyText = [NSString stringWithUTF8String:cStrKeyText];
                 if(!keyText) {
-                    keyText = [NSString stringWithCString:swModule->getKeyText() encoding:NSISOLatin1StringEncoding];
+                    keyText = [NSString stringWithCString:swModule->KeyText() encoding:NSISOLatin1StringEncoding];
                     if(!keyText) {
                         ALog(@"Unable to create NSString instance from string: %s", cStrKeyText);
                     }
@@ -115,7 +115,15 @@
     return self;
 }
 
+- (void)finalize {
+	[super finalize];
+}
 
+- (void)dealloc {
+    [self setKeys:nil];
+    
+    [super dealloc];
+}
 
 - (NSArray *)allKeys {
     NSArray *ret = self.keys;

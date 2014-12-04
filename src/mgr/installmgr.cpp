@@ -361,7 +361,6 @@ SWLog::getSystemLog()->logDebug("remoteCopy: %s, %s, %s, %c, %s", (is?is->source
 		SWBuf dir = (SWBuf)is->directory.c_str();
 		removeTrailingSlash(dir);
 		dir += (SWBuf)"/" + src; //dont forget the final slash
-SWLog::getSystemLog()->logDebug("remoteCopy: dirTransfer: %s", dir.c_str());
 
 		retVal = trans->copyDirectory(urlPrefix, dir, dest, suffix);
 
@@ -394,7 +393,6 @@ SWLog::getSystemLog()->logDebug("remoteCopy: dirTransfer: %s", dir.c_str());
 
 
 int InstallMgr::installModule(SWMgr *destMgr, const char *fromLocation, const char *modName, InstallSource *is) {
-	int retVal = 0;
 	SectionMap::iterator module, section;
 	ConfigEntMap::iterator fileBegin;
 	ConfigEntMap::iterator fileEnd;
@@ -451,14 +449,14 @@ int InstallMgr::installModule(SWMgr *destMgr, const char *fromLocation, const ch
 
 			if (!aborted) {
 				// DO THE INSTALL
-				while (fileBegin != fileEnd && !retVal) {
+				while (fileBegin != fileEnd) {
 					SWBuf sourcePath = sourceDir;
 					sourcePath += fileBegin->second.c_str();
 					SWBuf dest = destMgr->prefixPath;
 					removeTrailingSlash(dest);
 					dest += '/';
 					dest += fileBegin->second.c_str();
-					retVal = FileMgr::copyFile(sourcePath.c_str(), dest.c_str());
+					FileMgr::copyFile(sourcePath.c_str(), dest.c_str());
 
 					fileBegin++;
 				}
@@ -506,7 +504,7 @@ int InstallMgr::installModule(SWMgr *destMgr, const char *fromLocation, const ch
 				}
 				if (!aborted) {
 					SWBuf destPath = (SWBuf)destMgr->prefixPath + relativePath;
-					retVal = FileMgr::copyDir(absolutePath.c_str(), destPath.c_str());
+					FileMgr::copyDir(absolutePath.c_str(), destPath.c_str());
 				}
 				if (is) {		// delete tmp netCopied files
 //					mgr->deleteModule(modName);
@@ -518,7 +516,7 @@ int InstallMgr::installModule(SWMgr *destMgr, const char *fromLocation, const ch
 			SWBuf confDir = sourceDir + "mods.d/";
 			if ((dir = opendir(confDir.c_str()))) {	// find and copy .conf file
 				rewinddir(dir);
-				while ((ent = readdir(dir)) && !retVal) {
+				while ((ent = readdir(dir))) {
 					if ((strcmp(ent->d_name, ".")) && (strcmp(ent->d_name, ".."))) {
 						modFile = confDir;
 						modFile += ent->d_name;
@@ -528,7 +526,7 @@ int InstallMgr::installModule(SWMgr *destMgr, const char *fromLocation, const ch
 							removeTrailingSlash(targetFile);
 							targetFile += "/";
 							targetFile += ent->d_name;
-							retVal = FileMgr::copyFile(modFile.c_str(), targetFile.c_str());
+							FileMgr::copyFile(modFile.c_str(), targetFile.c_str());
 							if (cipher) {
 								if (getCipherCode(modName, config)) {
 									SWMgr newDest(destMgr->prefixPath);
@@ -537,7 +535,7 @@ int InstallMgr::installModule(SWMgr *destMgr, const char *fromLocation, const ch
 								}
 								else {
 									config->Save();
-									retVal = FileMgr::copyFile(modFile.c_str(), targetFile.c_str());
+									FileMgr::copyFile(modFile.c_str(), targetFile.c_str());
 								}
 							}
 						}
@@ -547,7 +545,7 @@ int InstallMgr::installModule(SWMgr *destMgr, const char *fromLocation, const ch
 				closedir(dir);
 			}
 		}
-		return (aborted) ? -9 : retVal;
+		return (aborted) ? -1 : 0;
 	}
 	return 1;
 }

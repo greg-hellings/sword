@@ -78,14 +78,14 @@ NSLock *bibleLock = nil;
 	
 	//if abbr contains : or . then we are a verse so return a chapter
 	if([abbr rangeOfString:@":"].location != NSNotFound || [abbr rangeOfString:@"."].location != NSNotFound) {
-		return firstBits[0];
+		return [firstBits objectAtIndex:0];
     }
 	
 	//otherwise return a book
 	firstBits = [first componentsSeparatedByString:@" "];
 	
 	if([firstBits count] > 0) {
-		return firstBits[0];
+		return [firstBits objectAtIndex:0];
     }
 	
 	return abbr;
@@ -96,7 +96,7 @@ NSLock *bibleLock = nil;
  that is: book number + testament * 100
  */
 + (int)bookIndexForSWKey:(sword::VerseKey *)key {
-    return key->getBookMax() + key->getTestamentMax() * 100;
+    return key->Book() + key->Testament() * 100;
 }
 
 #pragma mark - Initializers
@@ -119,11 +119,20 @@ NSLock *bibleLock = nil;
     return self;
 }
 
+- (void)finalize {
+	[super finalize];
+}
 
+- (void)dealloc {
+    [books release];
+    [super dealloc];
+}
 
 #pragma mark - Bible information
 
 - (void)buildBookList {
+	[moduleLock lock];
+    
     sword::VersificationMgr *vmgr = sword::VersificationMgr::getSystemVersificationMgr();
     const sword::VersificationMgr::System *system = vmgr->getVersificationSystem([[self versification] UTF8String]);
 
@@ -132,13 +141,15 @@ NSLock *bibleLock = nil;
     for(int i = 0;i < bookCount;i++) {
         sword::VersificationMgr::Book *book = (sword::VersificationMgr::Book *)system->getBook(i);
         
-        SwordBibleBook *bb = [[SwordBibleBook alloc] initWithBook:book];
+        SwordBibleBook *bb = [[[SwordBibleBook alloc] initWithBook:book] autorelease];
         [bb setNumber:i+1];
         
         NSString *bookName = [bb name];
-        buf[bookName] = bb;
+        [buf setObject:bb forKey:bookName];
     }
     self.books = buf;
+    
+	[moduleLock unlock];
 }
 
 - (BOOL)containsBookNumber:(int)aBookNum {
@@ -158,6 +169,8 @@ NSLock *bibleLock = nil;
 }
 
 - (void)setBooks:(NSMutableDictionary *)aBooks {
+    [aBooks retain];
+    [books release];
     books = aBooks;
 }
 
@@ -170,13 +183,13 @@ NSLock *bibleLock = nil;
 - (BOOL)hasReference:(NSString *)ref {
 	[moduleLock lock];
 	
-	sword::VerseKey	*key = (sword::VerseKey *)(swModule->createKey());
+	sword::VerseKey	*key = (sword::VerseKey *)(swModule->CreateKey());
 	(*key) = [ref UTF8String];
     NSString *bookName = [NSString stringWithUTF8String:key->getBookName()];
-    int chapter = key->getChapterMax();
-    int verse = key->getVerseMax();
+    int chapter = key->Chapter();
+    int verse = key->Verse();
     
-    SwordBibleBook *bb = [self books][bookName];
+    SwordBibleBook *bb = [[self books] objectForKey:bookName];
     if(bb) {
         if(chapter > 0 && chapter < [bb numberOfChapters]) {
             if(verse > 0 && verse < [bb numberOfVersesForChapter:chapter]) {
@@ -195,29 +208,41 @@ NSLock *bibleLock = nil;
     
     if(aReference && [aReference length] > 0) {
         sword::VerseKey vk;
-        sword::ListKey listKey = vk.parseVerseList([aReference UTF8String], "Gen1", true);
+        sword::ListKey listKey = vk.ParseVerseList([aReference UTF8String], "Gen1", true);
         // unfortunately there is no other way then loop though all verses to know how many
-        for(listKey = sword::TOP; !listKey.popError(); listKey++) ret++;
+        for(listKey = sword::TOP; !listKey.Error(); listKey++) ret++;    
     }
     
     return ret;
 }
 
 - (int)chaptersForBookName:(NSString *)bookName {
-    SwordBibleBook *book = [self bookForName:bookName];
-    if(book != nil) {
-        return [book numberOfChapters];
-    }
-	return -1;
+	[moduleLock lock];
+	
+	int maxChapters;
+	sword::VerseKey *key = (sword::VerseKey *)swModule->CreateKey();
+	(*key) = [bookName UTF8String];
+	maxChapters = key->getChapterMax();
+	delete key;
+	
+	[moduleLock unlock];
+	
+	return maxChapters;
 }
+
 
 - (int)versesForChapter:(int)chapter bookName:(NSString *)bookName {
     int ret = -1;
     
-    SwordBibleBook *bb = [self books][bookName];
+	[moduleLock lock];
+	
+    SwordBibleBook *bb = [[self books] objectForKey:bookName];
     if(bb) {
         ret = [bb numberOfVersesForChapter:chapter];
     }
+    
+	[moduleLock unlock];
+	
 	return ret;
 }
 
@@ -236,18 +261,9 @@ NSLock *bibleLock = nil;
     return ret;
 }
 
-- (SwordBibleBook *)bookForName:(NSString *)bookName {
+- (SwordBibleBook *)bookForLocalizedName:(NSString *)bookName {
     for(SwordBibleBook *book in [[self books] allValues]) {
-        if([[book localizedName] isEqualToString:bookName] || [[book name] isEqualToString:bookName]) {
-            return book;
-        }
-    }
-    return nil;
-}
-
-- (SwordBibleBook *)bookWithNamePrefix:(NSString *)aPrefix {
-    for(SwordBibleBook *book in [[self books] allValues]) {
-        if([[book localizedName] hasPrefix:aPrefix] || [[book name] hasPrefix:aPrefix]) {
+        if([[book localizedName] isEqualToString:bookName]) {
             return book;
         }
     }
@@ -257,68 +273,61 @@ NSLock *bibleLock = nil;
 - (NSString *)moduleIntroduction {
     NSString *ret;
     
-    [moduleLock lock];
-
     // save key
-    SwordVerseKey *save = (SwordVerseKey *)[self getKeyCopy];
+    SwordVerseKey *save = [(SwordVerseKey *)[self getKeyCopy] autorelease];
     
     SwordVerseKey *key = [SwordVerseKey verseKeyWithVersification:[self versification]];
     [key setHeadings:YES];
-    [key setTestament:0];
+    [key setPosition:0];
     [self setSwordKey:key];
     ret = [self renderedText];
     
     // restore old key
     [self setSwordKey:save];
     
-    [moduleLock unlock];
-
     return ret;
 }
 
 - (NSString *)bookIntroductionFor:(SwordBibleBook *)aBook {
     NSString *ret;
     
-    [moduleLock lock];
-
     // save key
-    SwordVerseKey *save = (SwordVerseKey *)[self getKeyCopy];
+    SwordVerseKey *save = [(SwordVerseKey *)[self getKeyCopy] autorelease];
 
     SwordVerseKey *key = [SwordVerseKey verseKeyWithVersification:[self versification]];
     [key setHeadings:YES];
-    [key setTestament:(char) [aBook testament]];
-    [key setBook:(char) [aBook numberInTestament]];
+    [key setAutoNormalize:NO];
+    [key setTestament:[aBook testament]];
+    [key setBook:[aBook numberInTestament]];
+    [key setChapter:0];
+    [key setVerse:0];
     [self setSwordKey:key];
     ret = [self renderedText];
     
     // restore old key
     [self setSwordKey:save];
-
-    [moduleLock unlock];
 
     return ret;
 }
 
-- (NSString *)chapterIntroductionIn:(SwordBibleBook *)aBook forChapter:(int)chapter {
+- (NSString *)chapterIntroductionFor:(SwordBibleBook *)aBook chapter:(int)chapter {
     NSString *ret;
-
-    [moduleLock lock];
-
+    
     // save key
-    SwordVerseKey *save = (SwordVerseKey *)[self getKeyCopy];
+    SwordVerseKey *save = [(SwordVerseKey *)[self getKeyCopy] autorelease];
 
     SwordVerseKey *key = [SwordVerseKey verseKeyWithVersification:[self versification]];
     [key setHeadings:YES];
-    [key setTestament:(char) [aBook testament]];
-    [key setBook:(char) [aBook numberInTestament]];
+    [key setAutoNormalize:NO];
+    [key setTestament:[aBook testament]];
+    [key setBook:[aBook numberInTestament]];
     [key setChapter:chapter];
+    [key setVerse:0];
     [self setSwordKey:key];
     ret = [self renderedText];
     
     // restore old key
     [self setSwordKey:save];
-
-    [moduleLock unlock];
 
     return ret;    
 }
@@ -357,18 +366,18 @@ NSLock *bibleLock = nil;
 }
 
 - (NSString *)versification {
-    NSString *versification = configEntries[SWMOD_CONFENTRY_VERSIFICATION];
+    NSString *versification = [configEntries objectForKey:SWMOD_CONFENTRY_VERSIFICATION];
     if(versification == nil) {
         versification = [self configFileEntryForConfigKey:SWMOD_CONFENTRY_VERSIFICATION];
         if(versification != nil) {
-            configEntries[SWMOD_CONFENTRY_VERSIFICATION] = versification;
+            [configEntries setObject:versification forKey:SWMOD_CONFENTRY_VERSIFICATION];
         }
     }
     
     // if still nil, use KJV versification
     if(versification == nil) {
         versification = @"KJV";
-        configEntries[SWMOD_CONFENTRY_VERSIFICATION] = versification;
+        [configEntries setObject:versification forKey:SWMOD_CONFENTRY_VERSIFICATION];
     }
     
     return versification;    
@@ -377,7 +386,7 @@ NSLock *bibleLock = nil;
 #pragma mark - SwordModuleAccess
 
 - (SwordKey *)createKey {
-    sword::VerseKey *vk = (sword::VerseKey *)swModule->createKey();
+    sword::VerseKey *vk = (sword::VerseKey *)swModule->CreateKey();
     SwordVerseKey *newKey = [SwordVerseKey verseKeyWithSWVerseKey:vk makeCopy:YES];
     delete vk;
     
@@ -394,9 +403,9 @@ NSLock *bibleLock = nil;
 
 - (long)entryCount {
     swModule->setPosition(sword::TOP);
-    long verseLowIndex = swModule->getIndex();
+    long verseLowIndex = swModule->Index();
     swModule->setPosition(sword::BOTTOM);
-    long verseHighIndex = swModule->getIndex();
+    long verseHighIndex = swModule->Index();
     
     return verseHighIndex - verseLowIndex;
 }
@@ -426,6 +435,7 @@ NSLock *bibleLock = nil;
     
     SwordListKey *lk = [SwordListKey listKeyWithRef:aReference v11n:[self versification]];
     [lk setPosition:SWPOS_TOP];
+    [lk setPersist:NO];
     SwordVerseKey *vk = [SwordVerseKey verseKeyWithRef:[lk keyText] v11n:[self versification]];
     while(![lk error]) {
         // set current key to vk

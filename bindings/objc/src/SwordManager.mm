@@ -13,8 +13,11 @@
 
 #import <ObjCSword/ObjCSword.h>
 #import "Notifications.h"
+#import "FilterProviderFactory.h"
+#import "DefaultFilterProvider.h"
 
 #include "encfiltmgr.h"
+#import "SwordFilter.h"
 
 using std::string;
 using std::list;
@@ -43,7 +46,7 @@ using std::list;
 
             ModuleType aType = [SwordModule moduleTypeForModuleTypeString:type];
             SwordModule *sm = [SwordModule moduleForType:aType swModule:mod swordManager:self];
-            dict[[[sm name] lowercaseString]] = sm;
+            [dict setObject:sm forKey:[[sm name] lowercaseString]];
 
             [self addFiltersToModule:sm];
         }
@@ -58,7 +61,7 @@ using std::list;
 
     id<FilterProvider> filterProvider = [[FilterProviderFactory providerFactory] get];
 
-    switch([mod swModule]->getMarkup()) {
+    switch([mod swModule]->Markup()) {
         case sword::FMT_GBF:
             if(!gbfFilter) {
                 gbfFilter = [filterProvider newGbfRenderFilter];
@@ -102,7 +105,7 @@ using std::list;
         case sword::FMT_PLAIN:
         default:
             if(!plainFilter) {
-                plainFilter = [filterProvider newOsisPlainFilter];
+                plainFilter = [filterProvider newHtmlPlainFilter];
             }
             [mod addRenderFilter:plainFilter];
             break;
@@ -121,11 +124,15 @@ using std::list;
 # pragma mark - class methods
 
 + (NSArray *)moduleTypes {
-    return @[SWMOD_TYPES_BIBLES, SWMOD_TYPES_COMMENTARIES, SWMOD_TYPES_DICTIONARIES, SWMOD_TYPES_GENBOOKS];
+    return [NSArray arrayWithObjects:
+            SWMOD_TYPES_BIBLES, 
+            SWMOD_TYPES_COMMENTARIES,
+            SWMOD_TYPES_DICTIONARIES,
+            SWMOD_TYPES_GENBOOKS, nil];
 }
 
 + (SwordManager *)managerWithPath:(NSString *)path {
-    SwordManager *manager = [[SwordManager alloc] initWithPath:path];
+    SwordManager *manager = [[[SwordManager alloc] initWithPath:path] autorelease];
     return manager;
 }
 
@@ -148,7 +155,7 @@ using std::list;
         self.modulesPath = path;
 
 		self.modules = [NSDictionary dictionary];
-		self.managerLock = (id) [[NSRecursiveLock alloc] init];
+		self.managerLock = (NSLock *)[[[NSRecursiveLock alloc] init] autorelease];
 
         [self reInit];
         
@@ -156,7 +163,7 @@ using std::list;
         sword::StringList::iterator	it;
         for(it = options.begin(); it != options.end(); it++) {
             [self setGlobalOption:[NSString stringWithCString:it->c_str() encoding:NSUTF8StringEncoding] value:SW_OFF];
-        }
+        }        
     }	
 	
 	return self;
@@ -170,7 +177,7 @@ using std::list;
         temporaryManager = YES;
         
 		self.modules = [NSDictionary dictionary];
-        self.managerLock = (id) [[NSRecursiveLock alloc] init];
+        self.managerLock = [(NSLock *)[[NSRecursiveLock alloc] init] autorelease];
         
 		[self refreshModules];
     }
@@ -178,12 +185,32 @@ using std::list;
     return self;
 }
 
+- (void)finalize {
+    if(!temporaryManager) {
+        delete swManager;
+    }
+    
+	[super finalize];
+}
 
 - (void)dealloc {
     if(!temporaryManager) {
         delete swManager;
     }
+    [self setModules:nil];
+    [self setModulesPath:nil];
+    [self setManagerLock:nil];
 
+    [gbfFilter release];
+    [gbfStripFilter release];
+    [thmlFilter release];
+    [thmlStripFilter release];
+    [osisFilter release];
+    [osisStripFilter release];
+    [teiFilter release];
+    [teiStripFilter release];
+    [plainFilter release];
+    [super dealloc];
 }
 
 - (void)reInit {
@@ -309,7 +336,7 @@ using std::list;
     }
 	
     // sort
-    NSArray *sortDescriptors = [NSArray arrayWithObject:[[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES]];
+    NSArray *sortDescriptors = [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES] autorelease]];
     [ret sortUsingDescriptors:sortDescriptors];
 
 	return [NSArray arrayWithArray:ret];
@@ -324,7 +351,7 @@ using std::list;
     }
     
     // sort
-    NSArray *sortDescriptors = [NSArray arrayWithObject:[[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES]];
+    NSArray *sortDescriptors = [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES] autorelease]];
     [ret sortUsingDescriptors:sortDescriptors];
     
 	return [NSArray arrayWithArray:ret];
@@ -339,7 +366,7 @@ using std::list;
     }
     
     // sort
-    NSArray *sortDescriptors = [NSArray arrayWithObject:[[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES]];
+    NSArray *sortDescriptors = [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES] autorelease]];
     [ret sortUsingDescriptors:sortDescriptors];
     
 	return [NSArray arrayWithArray:ret];    

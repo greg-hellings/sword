@@ -37,30 +37,26 @@
         swBook = aBook;
         
         sword::VerseKey vk = sword::VerseKey(aBook->getOSISName());
-        [self setTestament:vk.getTestament()];
-        [self setNumberInTestament:vk.getBook()];
+        [self setTestament:vk.Testament()];
+        [self setNumberInTestament:vk.Book()];
         
         // get system localeMgr to be able to translate the english bookName
         sword::LocaleMgr *lmgr = sword::LocaleMgr::getSystemLocaleMgr();
-        const char *translated = lmgr->translate(swBook->getLongName());
-        self.localizedName = [NSString stringWithUTF8String:translated];
-
-        // in case we don't have ICU support this still works.
-        if(self.localizedName == nil) {
-            self.localizedName = [NSString stringWithCString:translated encoding:NSISOLatin1StringEncoding];
-        }
-        if(self.localizedName == nil) {
-            DLog(@"Unable to get this bookname: %s", translated);
-        }
+        self.localizedName = [NSString stringWithUTF8String:lmgr->translate(swBook->getLongName())];        
     }
     
     return self;
 }
 
+- (void)finalize {
+    [super finalize];
+}
 
 - (void)dealloc {
-    [self setChapters:nil];
     [self setLocalizedName:nil];
+    [self setChapters:nil];
+    
+    [super dealloc];
 }
 
 - (NSString *)name {
@@ -80,6 +76,8 @@
 }
 
 - (void)setChapters:(NSArray *)anArray {
+    [anArray retain];
+    [chapters release];
     chapters = anArray;
 }
 
@@ -87,7 +85,7 @@
     if(chapters == nil) {
         NSMutableArray *temp = [NSMutableArray array];
         for(int i = 0;i < swBook->getChapterMax();i++) {
-            [temp addObject:[[SwordBibleChapter alloc] initWithBook:self andChapter:i+1]];
+            [temp addObject:[[[SwordBibleChapter alloc] initWithBook:self andChapter:i+1] autorelease]];
         }
         [self setChapters:[NSArray arrayWithArray:temp]];
     }
@@ -108,7 +106,7 @@
 
 /** we implement this for sorting */
 - (NSComparisonResult)compare:(SwordBibleBook *)b {
-    return [@(number) compare:@([b number])];
+    return [[NSNumber numberWithInt:number] compare:[NSNumber numberWithInt:[b number]]];
 }
 
 @end

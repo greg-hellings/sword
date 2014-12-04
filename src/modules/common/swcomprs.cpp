@@ -35,7 +35,6 @@ SWORD_NAMESPACE_START
 SWCompress::SWCompress()
 {
 	buf = zbuf = 0;
-	level = 6;
 	Init();
 }
 

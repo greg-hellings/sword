@@ -18,6 +18,7 @@
 - (SwordFilter *)newThmlPlainFilter;
 - (SwordFilter *)newTeiRenderFilter;
 - (SwordFilter *)newTeiPlainFilter;
+- (SwordFilter *)newHtmlPlainFilter;
 
 @end
 
@@ -31,5 +32,6 @@
 - (SwordFilter *)newThmlPlainFilter;
 - (SwordFilter *)newTeiRenderFilter;
 - (SwordFilter *)newTeiPlainFilter;
+- (SwordFilter *)newHtmlPlainFilter;
 
 @end

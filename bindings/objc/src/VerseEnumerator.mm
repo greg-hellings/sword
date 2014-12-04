@@ -10,7 +10,7 @@
 #import "SwordListKey.h"
 
 @interface VerseEnumerator ()
-@property (strong, readwrite) SwordListKey *listKey;
+@property (retain, readwrite) SwordListKey *listKey;
 @end
 
 @implementation VerseEnumerator
@@ -26,11 +26,18 @@
     return self;
 }
 
+- (void)finalize {
+    [super finalize];
+}
 
+- (void)dealloc {
+    [listKey release];
+    [super dealloc];
+}
 
 - (NSArray *)allObjects {
     NSMutableArray *t = [NSMutableArray array];
-    for(*[listKey swListKey] = sword::TOP;![listKey swListKey]->popError(); *[listKey swListKey] += 1) {
+    for(*[listKey swListKey] = sword::TOP;![listKey swListKey]->Error(); *[listKey swListKey] += 1) {
         [t addObject:[listKey keyText]];
     }
     // position TOP again
@@ -41,7 +48,7 @@
 
 - (NSString *)nextObject {
     NSString *ret = nil;
-    if(![listKey swListKey]->popError()) {
+    if(![listKey swListKey]->Error()) {
         ret = [listKey keyText];
         *[listKey swListKey] += 1;
     }

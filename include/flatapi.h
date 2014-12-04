@@ -281,15 +281,6 @@ SWHANDLE SWDLLEXPORT org_crosswire_sword_SWMgr_new
 
 /*
  * Class:     org_crosswire_sword_SWMgr
- * Method:    newWithPath
- * Signature: ()V
- * Signature: (Ljava/lang/String;)V
- */
-SWHANDLE SWDLLEXPORT org_crosswire_sword_SWMgr_newWithPath
-  (const char *path);
-
-/*
- * Class:     org_crosswire_sword_SWMgr
  * Method:    delete
  * Signature: ()V
  */
@@ -441,14 +432,6 @@ const char * SWDLLEXPORT org_crosswire_sword_SWMgr_translate
  */
 SWHANDLE SWDLLEXPORT org_crosswire_sword_InstallMgr_new
   (const char *baseDir, SWHANDLE statusReporter);
-
-/*
- * Class:     org_crosswire_sword_InstallMgr
- * Method:    delete
- * Signature: ()V
- */
-void SWDLLEXPORT org_crosswire_sword_InstallMgr_delete
-  (SWHANDLE hInstallMgr);
 
 /*
  * Class:     org_crosswire_sword_InstallMgr

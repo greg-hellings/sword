@@ -6,20 +6,33 @@
 //  Copyright 2008 __MyCompanyName__. All rights reserved.
 //
 
+#import "SwordModuleTest.h"
+#ifdef TARGET_IPHONE_SIMULATOR
+#import "SwordManager.h"
+#import "Configuration.h"
+#import "iOSConfiguration.h"
+#import "SwordModule.h"
+#import "SwordBibleTextEntry.h"
+#import "VerseEnumerator.h"
+#import "SwordListKey.h"
+#else
 #import "ObjCSword/ObjCSword.h"
-#import "SwordModuleLongRunTest.h"
-#import "SwordModule+Index.h"
+#endif
 
-@implementation SwordModuleLongRunTest
+@implementation SwordModuleTest
 
 - (void)setUp {
-    [Configuration configWithImpl:[[OSXConfiguration alloc] init]];
-    mod = [[SwordManager defaultManager] moduleWithName:@"GerNeUe"];
+#ifdef TARGET_IPHONE_SIMULATOR
+    [[Configuration config] setClass:[iOSConfiguration class]];
+#else
+    [[Configuration config] setClass:[OSXConfiguration class]];
+#endif
+    mod = [[SwordManager defaultManager] moduleWithName:@"GerNeUe"];    
 }
 
 - (void)testCreateSearchIndex {
     SwordModule *sm = [[SwordManager defaultManager] moduleWithName:@"GerSch"];
-    XCTAssertNotNil(sm, @"Module is nil");
+    STAssertNotNil(sm, @"Module is nil");
     
     NSLog(@"creating clucene search index...");
     [sm createSearchIndex];
@@ -64,7 +77,7 @@
         [com incKeyPosition];
         count++;
     }
-    XCTAssertTrue((count == 1), @"");
+    STAssertTrue((count == 1), @"");
 }
 
 - (void)testCommentarySkipLinksNoPersist {
@@ -84,7 +97,7 @@
         [lk increment];
         count++;
     }
-    XCTAssertTrue((count == 1), @"");
+    STAssertTrue((count == 1), @"");
 }
 
 @end

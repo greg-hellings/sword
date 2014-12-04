@@ -16,6 +16,8 @@
 
 #ifdef __cplusplus
 #include <rawfiles.h>
+class sword::RawFiles;
+class sword::SWConfig;
 #endif
 
 

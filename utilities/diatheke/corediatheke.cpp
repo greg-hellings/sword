@@ -43,7 +43,7 @@ void systemquery(const char * key, ostream* output){
 
 	SWModule *target;
 	
-	bool types = false, descriptions = false, names = false, bibliography = false;
+	bool types = false, descriptions = false, names = false;
 
 	if (!::stricmp(key, "localelist")) {		
 		LocaleMgr *lm = LocaleMgr::getSystemLocaleMgr();
@@ -64,22 +64,16 @@ void systemquery(const char * key, ostream* output){
 	else if (!::stricmp(key, "modulelistdescriptions")) {
 		descriptions = true;
 	}
-	else if (!::stricmp(key, "bibliography")) {
-		types = true;
-		names = true;
-		bibliography = true;
-	}
 	
 	
-	if (types || descriptions || names || bibliography) {
+	if (types || descriptions || names) {
 		if (types) *output << "Biblical Texts:\n";
 		for (it = manager.Modules.begin(); it != manager.Modules.end(); it++) {
 			target = it->second;
 			if (!strcmp(target->getType(), "Biblical Texts")) {
 				if (names) *output << target->getName();
-				if (names && (descriptions || bibliography)) *output << " : ";
+				if (names && descriptions) *output << " : ";
 				if (descriptions) *output << target->getDescription();
-				if (bibliography) *output << target->getBibliography();
 				*output << endl;
 			}
 		}
@@ -88,9 +82,8 @@ void systemquery(const char * key, ostream* output){
 			target = it->second;
 			if (!strcmp(target->getType(), "Commentaries")) {
 				if (names) *output << target->getName();
-				if (names && (descriptions||bibliography)) *output << " : ";
+				if (names && descriptions) *output << " : ";
 				if (descriptions) *output << target->getDescription();
-				if (bibliography) *output << target->getBibliography();
 				*output << endl;
 			}
 		}
@@ -99,9 +92,8 @@ void systemquery(const char * key, ostream* output){
 			target = it->second;
 			if (!strcmp(target->getType(), "Lexicons / Dictionaries")) {
 				if (names) *output << target->getName();
-				if (names && (descriptions||bibliography)) *output << " : ";
+				if (names && descriptions) *output << " : ";
 				if (descriptions) *output << target->getDescription();
-				if (bibliography) *output << target->getBibliography();
 				*output << endl;
 			}
 		}
@@ -110,9 +102,8 @@ void systemquery(const char * key, ostream* output){
 			target = it->second;
 			if (!strcmp(target->getType(), "Generic Books")) {
 				if (names) *output << target->getName();
-				if (names && (descriptions||bibliography)) *output << " : ";
+				if (names && descriptions) *output << " : ";
 				if (descriptions) *output << target->getDescription();
-				if (bibliography) *output << target->getBibliography();
 				*output << endl;
 			}
 		}
@@ -129,10 +120,9 @@ void doquery(unsigned long maxverses = -1, unsigned char outputformat = FMT_PLAI
 	ListKey listkey;
 	SectionMap::iterator sit;
 	ConfigEntMap::iterator eit;
-	const char * DEFAULT_FONT = "Gentium";
 	SWModule *target;
 	
-	const char *font = 0;
+	char *font = 0;
 	SWBuf modlanguage;
 	SWBuf modlocale;
 	SWBuf syslanguage;
@@ -351,80 +341,14 @@ void doquery(unsigned long maxverses = -1, unsigned char outputformat = FMT_PLAI
 			*output << "<meta http-equiv=\"content-type\" content=\"text/html\" charset=\"UTF-8\""
 				   " lang=\"" << locale << "\" xml:lang=\"" << locale << "\"/>";
 		}
-		else if (outputformat == FMT_LATEX) {
-			*output << "\\documentclass{scrbook}\n"
-				   "\\usepackage{geometry}\n"
-				   "\\usepackage{setspace}\n"
-				   "\\usepackage{polyglossia}\n"
-			           "\\usepackage{lettrine}\n"
-				   "\\usepackage[perpage,para]{footmisc}\n"
-			           "\\title{" << target->getDescription() << " \\\\\\small " << ref << "}\n";
 
-			if (syslanguage.size()) {
-				syslanguage[0] = tolower(syslanguage[0]);
-				*output << "\\setmainlanguage{" << syslanguage << "}\n";
-				}
-			
-			if (modlanguage.size()) {
-				modlanguage[0] = tolower(modlanguage[0]);
-				}
-			else {	
-				modlanguage = "english";
-				}
-			if (!(font)) {	
-				font = DEFAULT_FONT;
-				}
-							
-			if (!(modlanguage == syslanguage))	{		
-		
-				*output << "\\setotherlanguage{" << modlanguage << "}\n"
-			        	   "\\newfontfamily\\" << syslanguage << "font{Gentium}\n"
-			 	  	   "\\newfontfamily\\" << modlanguage << "font{" << font << "} % apply following options e.g for Persian [Script=Arabic,Scale=1.3,Ligatures=TeX,Numbers=OldStyle,Mapping=arabicdigits]\n";				   	  
-				}
-			 	
-			 
-			*output << "\\date{}\n"
-				   "\\onehalfspacing\n"
-				   "\\setlength{\\parskip}{\\smallskipamount}\n"
-				   "\\setlength{\\parindent}{0pt}\n"
-				   
-				   "\\renewcommand{\\thefootnote}{\\alph{footnote}}\n"
-				   "\\begin{document}\n"
-				   "\\setlength{\\parskip}{3pt} % 1ex plus 0.5ex minus 0.2ex}\n"
-				   "\\maketitle\n";
-				   
-                        if (!(modlanguage == syslanguage))      {
-				   *output << "\\begin{" << modlanguage << "}\n";
-				   }
 
-		}
-
-/*		else if (outputformat == FMT_LATEX) {
-			*output << "\\documentclass[12pt]{book}\n"
-				   "\\usepackage{fontspec}\n"
-				   "\\usepackage{geometry}\n"
-				   "\\usepackage{setspace}\n"
-				   "\\usepackage{polyglossia}\n";
-			if (font) {
-				*output << "\\setmainfont{" << font << "}";
-			} 
-			
-			*output << "\\begin{document}\n";
-			*output << "\\setlength{\\parskip}{3pt} % 1ex plus 0.5ex minus 0.2ex}\n";
-		}
-
-*/
 		if (text.length()) {
-			if (outputformat == FMT_LATEX) {
-				*output << "\\\\ ";
-			}
-			
 			*output << (char*)target->getKeyText();
-			if (outputformat == FMT_HTML || outputformat == FMT_HTMLHREF || outputformat == FMT_XHTML || outputformat == FMT_THML || outputformat == FMT_CGI) {
-				*output << ": <span ";
-				if (font) { *output << "style=\"font:\"" << font << ";\""; }
-				if (strcmp(modlocale,locale) !=0 ) { *output << "lang=\"" << modlocale << "\"";}
-				*output << ">";
+			*output << (char*)target->getKeyText();
+			if (font && (outputformat == FMT_HTML || outputformat == FMT_HTMLHREF || outputformat == FMT_XHTML || outputformat == FMT_THML || outputformat == FMT_CGI)) {
+				*output << ": <span style=\"font:\"" << font << ";\""
+				        << " lang=\"" << modlocale << "\">";
 			}
 			else if (outputformat == FMT_RTF) {
 				*output << ": {\\f1 ";
@@ -440,23 +364,11 @@ void doquery(unsigned long maxverses = -1, unsigned char outputformat = FMT_PLAI
 				*output << "}";
 			}
 
-			*output << "(" << target->getName(); 
-			
-		
-			if (outputformat == FMT_LATEX) {
-				*output << ", ";
-				*output << target->getConfigEntry("DistributionLicense");
-				}
-
-			
-			*output << ")\n";
+			*output << "(" << target->getName() << ")\n";
 		}
 
 		if (outputformat == FMT_RTF) {
 			*output << "}";
-		}
-		else if (outputformat == FMT_LATEX) {
-			*output << "\\end{document}\n";
 		}
 
 	}
@@ -473,7 +385,7 @@ void doquery(unsigned long maxverses = -1, unsigned char outputformat = FMT_PLAI
 
  		listkey = parser->parseVerseList(ref, "Gen1:1", true);
 		int i;
-		
+
 		if (outputformat == FMT_RTF) {
 			*output << "{\\rtf1\\ansi{\\fonttbl{\\f0\\froman\\fcharset0\\fprq2 Times New Roman;}{\\f1\\fdecor\\fprq2 ";
 			if (font)
@@ -482,59 +394,9 @@ void doquery(unsigned long maxverses = -1, unsigned char outputformat = FMT_PLAI
 				*output << "Times New Roman";
 			*output << ";}{\\f7\\froman\\fcharset2\\fprq2 Symbol;}}";
 		}
-
-		else if (outputformat == FMT_LATEX) {
-			*output << "\\documentclass{scrbook}\n"
-				   "\\usepackage{geometry}\n"
-				   "\\usepackage{setspace}\n"
-				   "\\usepackage{polyglossia}\n"
-			           "\\usepackage{lettrine}\n"
-				   "\\usepackage[perpage,para]{footmisc}\n"
-			           "\\title{" << target->getDescription() << " \\\\\\small " << ref << "}\n";
-
-			if (syslanguage.size()) {
-				syslanguage[0] = tolower(syslanguage[0]);
-				*output << "\\setmainlanguage{" << syslanguage << "}\n";
-				}
-			
-			if (modlanguage.size()) {
-				modlanguage[0] = tolower(modlanguage[0]);
-				}
-			else {	
-				modlanguage = "english";
-				}
-			if (!(font)) {	
-				font = "Gentium";
-				}
-							
-			if (!(modlanguage == syslanguage))	{		
-		
-				*output << "\\setotherlanguage{" << modlanguage << "}\n"
-			        	   "\\newfontfamily\\" << syslanguage << "font{Gentium}\n"
-			 	  	   "\\newfontfamily\\" << modlanguage << "font{" << font << "} % apply following options e.g for Persian [Script=Arabic,Scale=1.3,Ligatures=TeX,Numbers=OldStyle,Mapping=arabicdigits]\n";				   	  
-				}
-			 	
-			 
-			*output << "\\date{}\n"
-				   "\\onehalfspacing\n"
-				   "\\setlength{\\parskip}{\\smallskipamount}\n"
-				   "\\setlength{\\parindent}{0pt}\n"
-				   
-				   "\\renewcommand{\\thefootnote}{\\alph{footnote}}\n"
-				   "\\begin{document}\n"
-				   "\\setlength{\\parskip}{3pt} % 1ex plus 0.5ex minus 0.2ex}\n"
-				   "\\maketitle\n";
-				   
-                        if (!(modlanguage == syslanguage))      {
-				   *output << "\\begin{" << modlanguage << "}\n";
-				   }
-
-		}
-
-
 		else if (outputformat == FMT_HTML || outputformat == FMT_HTMLHREF || outputformat == FMT_XHTML) {
 			*output << "<meta http-equiv=\"content-type\" content=\"text/html\" charset=\"UTF-8\""
-				   " lang=\"" <<  locale << "\" xml:lang=\"" <<   locale << "\"/>\n";
+				   " lang=\"" <<  locale << "\" xml:lang=\"" <<   locale << "\"/>";
 		}
 
 		for (i = 0; i < listkey.getCount() && maxverses; i++) {
@@ -543,42 +405,23 @@ void doquery(unsigned long maxverses = -1, unsigned char outputformat = FMT_PLAI
 			  target->setKey(element->getLowerBound());
 				*parser = element->getUpperBound();
 				while (maxverses && *target->getKey() <= *parser) {
-
-					if (outputformat == FMT_LATEX) {
-						VerseKey *outkey = new VerseKey(target->getKey());
-						if (outkey->getVerse() == 1) {
-							*output << "\n\\chapter*{}\n\\lettrine[lines=3]{"
-							        << outkey->getChapter()
-							        << "}{ }";
-						}
-						else {	
-							*output << "\\textsuperscript{\\tiny{"
-							        << outkey->getVerse()
-							        << "}} ";
-						}
-					}	
-					else { 						
-						*output << (char*)target->getKeyText();
-					}
+					*output << (char*)target->getKeyText();
 					if (outputformat == FMT_HTML || outputformat == FMT_HTMLHREF || outputformat == FMT_XHTML || outputformat == FMT_THML || outputformat == FMT_CGI) {
 						*output << ": <span ";
 						if (font) { *output << "style=\"font:\""  << font << ";\" " ;}
 						if (strcmp(modlocale,locale) !=0 ) { *output << "lang=\"" << modlocale << "\"";}
 						*output << ">";
 					}
+					if (font && (outputformat == FMT_HTML || outputformat == FMT_HTMLHREF || outputformat == FMT_XHTML || outputformat == FMT_THML || outputformat == FMT_CGI)) {
+						*output << ": <span style=\"font:\""  << font << ";\"" << " lang=\"" << modlocale << "\">";
+					}
 					else if (outputformat == FMT_RTF) {
 						*output << ": {\\f1 ";
-					}
-					else if (outputformat == FMT_LATEX) {
-						*output << " ";
 					}
 					else {
 						*output << ": ";
 					}
-						
 					*output << target->renderText();
-					
-					
 					if (outputformat == FMT_HTML || outputformat == FMT_HTMLHREF || outputformat == FMT_XHTML || outputformat == FMT_THML || outputformat == FMT_CGI) {
 						*output << "</span>";
 					}
@@ -605,31 +448,19 @@ void doquery(unsigned long maxverses = -1, unsigned char outputformat = FMT_PLAI
 			}
 			else {
 				target->setKey(*listkey.getElement(i));
-	
-				if (outputformat == FMT_LATEX) {
-					VerseKey *outkey = new VerseKey(target->getKey());
-					if (outkey->getVerse() == 1) {
-						*output << "\n\\chapter*\n\\lettrine[lines=3]{"  << outkey->getChapter() << "}{ }";
-					}
-					else {	
-						*output << "\\textsuperscript{\\tiny{" << outkey->getVerse() << "}} ";
-					}
-				}	
-				else { 						
-					*output << (char*)target->getKeyText();
-					}
-
+				*output << (char*)target->getKeyText();
 				if (outputformat == FMT_HTML || outputformat == FMT_HTMLHREF || outputformat == FMT_XHTML || outputformat == FMT_THML || outputformat == FMT_CGI) {
 						*output << ": <span ";
 						if (font) { *output << "style=\"font:\""  << font << ";\" " ;}
 						if (strcmp(modlocale,locale) !=0 ) { *output << "lang=\"" << modlocale << "\"";}
 						*output << ">";
-					}
+				}	
+
+				if (font && (outputformat == FMT_HTML || outputformat == FMT_HTMLHREF || outputformat == FMT_XHTML || outputformat == FMT_THML || outputformat == FMT_CGI)) {
+					*output << ": <font face=\"" << font << "\">";
+				}
 				else if (outputformat == FMT_RTF) {
 					*output << ": {\\f1 ";
-				}
-				else if (outputformat == FMT_LATEX) {
-					*output << " ";
 				}
 				else {
 					*output << ": ";
@@ -648,8 +479,6 @@ void doquery(unsigned long maxverses = -1, unsigned char outputformat = FMT_PLAI
 					*output << "<milestone type=\"line\"/>";
 				else if (outputformat == FMT_RTF)
 					*output << "\\par ";
-				else if (outputformat == FMT_LATEX)
-					*output << "\\\\ ";
 				else if (outputformat == FMT_GBF)
 					*output << "<CM>";
 
@@ -657,27 +486,16 @@ void doquery(unsigned long maxverses = -1, unsigned char outputformat = FMT_PLAI
 				maxverses--;
 			}
 		}
-		if ((outputformat == FMT_LATEX) && (!(modlanguage == syslanguage))) {
-			*output << "\\end{" << modlanguage << "}\n";
-		}
 		
 		
 		*output << "(";
 		*output << target->getName();
-		if (outputformat == FMT_LATEX) {
-			*output << ", ";
-			*output << target->getConfigEntry("DistributionLicense");
-			
-		}
 		*output << ")\n";
 
 		if (outputformat == FMT_RTF) {
 			*output << "}";
 		}
-		else if (outputformat == FMT_LATEX) {
-			*output << "\\end{document}\n";
-		}
-	}
-	delete parser;
-}
 
+	}
+
+}

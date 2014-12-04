@@ -38,17 +38,6 @@ public class SWModule {
 	public static final int SEARCHTYPE_ENTRYATTR = -3;
 	public static final int SEARCHTYPE_LUCENE    = -4;
 
-	public static final int VERSEKEY_TESTAMENT  = 0;
-	public static final int VERSEKEY_BOOK       = 1;
-	public static final int VERSEKEY_CHAPTER    = 2;
-	public static final int VERSEKEY_VERSE      = 3;
-	public static final int VERSEKEY_CHAPTERMAX = 4;
-	public static final int VERSEKEY_VERSEMAX   = 5;
-	public static final int VERSEKEY_BOOKNAME   = 6;
-	public static final int VERSEKEY_OSISREF    = 7;
-	public static final int VERSEKEY_SHORTTEXT  = 8;
-	public static final int VERSEKEY_BOOKABBREV = 9;
-
 	private SWModule() {}	// don't allow allocation, instead use factory method SWMgr.getModuleByName to retrieve an instance
 
 	public static class SearchHit {
@@ -89,7 +78,6 @@ public class SWModule {
 	public native void          next();
 	public native void          begin();
 	public native String        getStripText();
-	public native String        getRenderHeader();
 	public native String        getRenderText();
 	public native String        getRawEntry();
 	public native void          setRawEntry(String entryBuffer);
