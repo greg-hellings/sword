@@ -23,11 +23,6 @@
 package org.crosswire.android.sword;
 
 public class InstallMgr {
-	
-	public static interface InstallProgressReporter {
-		public void update(long totalBytes, long completedBytes);
-		public void preStatus(long totalBytes, long completedBytes, String message);
-	}
 
 	public native void reInit();
 
@@ -37,8 +32,7 @@ public class InstallMgr {
 	public native String []        getRemoteSources();
 	public native int              refreshRemoteSource(String sourceName);
 	public native SWMgr.ModInfo [] getRemoteModInfoList(String sourceName);
-	public native int              remoteInstallModule(String sourceName, String modName, InstallProgressReporter progressReporter);
-	public int                     remoteInstallModule(String sourceName, String modName) { return remoteInstallModule(sourceName, modName, null); }
+	public native int              remoteInstallModule(String sourceName, String modName);
 	public native SWModule         getRemoteModuleByName(String source, String name);
 
 }

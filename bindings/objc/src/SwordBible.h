@@ -29,7 +29,7 @@ typedef enum {
     NSMutableDictionary *books;
 }
 
-@property (strong, readwrite) NSMutableDictionary *books;
+@property (retain, readwrite) NSMutableDictionary *books;
 
 // ----------- class methods -------------
 + (void)decodeRef:(NSString *)ref intoBook:(NSString **)bookName book:(int *)book chapter:(int *)chapter verse:(int *)verse;
@@ -47,12 +47,11 @@ typedef enum {
 - (NSArray *)bookList;
 
 - (NSString *)bookIntroductionFor:(SwordBibleBook *)aBook;
-- (NSString *)chapterIntroductionIn:(SwordBibleBook *)aBook forChapter:(int)chapter;
+- (NSString *)chapterIntroductionFor:(SwordBibleBook *)aBook chapter:(int)chapter;
 - (NSString *)moduleIntroduction;
 
 // some numbers
-- (SwordBibleBook *)bookWithNamePrefix:(NSString *)aPrefix;
-- (SwordBibleBook *)bookForName:(NSString *)bookName;
+- (SwordBibleBook *)bookForLocalizedName:(NSString *)bookName;
 - (int)chaptersForBookName:(NSString *)bookName;
 - (int)versesForChapter:(int)chapter bookName:(NSString *)bookName;
 - (int)versesForBible;

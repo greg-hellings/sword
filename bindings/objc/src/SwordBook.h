@@ -26,7 +26,7 @@
 	NSMutableDictionary *contents;
 }
 
-@property(readwrite, strong) NSMutableDictionary *contents;
+@property(readwrite, retain) NSMutableDictionary *contents;
 
 /**
  return the tree content for the given treeKey

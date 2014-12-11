@@ -21,13 +21,12 @@
  *
  */
 
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <xzcomprs.h>
-
-#define LZMA_API_STATIC
-#include <lzma.h>
+#include <zlib.h>
 
 SWORD_NAMESPACE_START
 
@@ -37,24 +36,6 @@ SWORD_NAMESPACE_START
  */
 
 XzCompress::XzCompress() : SWCompress() {
-	level = 3;
-	
-	// start with the estimated memory usage for our preset
-	memlimit = lzma_easy_decoder_memusage(level | LZMA_PRESET_EXTREME);
-	
-	// and round up to a power of 2--
-	// bit twiddle hack to determine next greatest power of 2 from:
-	// http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-	memlimit--;
-	memlimit |= memlimit >> 1;
-	memlimit |= memlimit >> 2;
-	memlimit |= memlimit >> 4;
-	memlimit |= memlimit >> 8;
-	memlimit |= memlimit >> 16;
-	memlimit++;
-
-	// double that for safety's sake
-	memlimit <<= 1;
 }
 
 
@@ -78,6 +59,20 @@ XzCompress::~XzCompress() {
 
 void XzCompress::Encode(void)
 {
+/*
+ZEXTERN int ZEXPORT compress OF((Bytef *dest,   uLongf *destLen,
+                                 const Bytef *source, uLong sourceLen));
+     Compresses the source buffer into the destination buffer.  sourceLen is
+   the byte length of the source buffer. Upon entry, destLen is the total
+   size of the destination buffer, which must be at least 0.1% larger than
+   sourceLen plus 12 bytes. Upon exit, destLen is the actual size of the
+   compressed buffer.
+     This function can be used to compress a whole file at once if the
+   input file is mmap'ed.
+     compress returns Z_OK if success, Z_MEM_ERROR if there was not
+   enough memory, Z_BUF_ERROR if there was not enough room in the output
+   buffer.
+*/
 	direct = 0;	// set direction needed by parent [Get|Send]Chars()
 
 	// get buffer
@@ -95,22 +90,18 @@ void XzCompress::Encode(void)
 		chunkbuf = buf+len;
 	}
 
-	zlen = (long)lzma_stream_buffer_bound(len);
-	char *zbuf = new char[zlen+1];
-	size_t zpos = 0;
 
+	zlen = (long) (len*1.001)+15;
+	char *zbuf = new char[zlen+1];
 	if (len)
 	{
 		//printf("Doing compress\n");
-		switch (lzma_easy_buffer_encode(level | LZMA_PRESET_EXTREME, LZMA_CHECK_CRC64, NULL, (const uint8_t*)buf, (size_t)len, (uint8_t*)zbuf, &zpos, (size_t)zlen)) {
-		        case LZMA_OK: SendChars(zbuf, zpos);  break;
-			case LZMA_BUF_ERROR: fprintf(stderr, "ERROR: not enough room in the out buffer during compression.\n"); break;
-			case LZMA_UNSUPPORTED_CHECK: fprintf(stderr, "ERROR: unsupported_check error encountered during decompression.\n"); break;
-			case LZMA_OPTIONS_ERROR: fprintf(stderr, "ERROR: options error encountered during decompression.\n"); break;
-			case LZMA_MEM_ERROR: fprintf(stderr, "ERROR: not enough memory during compression.\n"); break;
-			case LZMA_DATA_ERROR: fprintf(stderr, "ERROR: corrupt data during compression.\n"); break;
-			case LZMA_PROG_ERROR: fprintf(stderr, "ERROR: program error encountered during decompression.\n"); break;
-			default: fprintf(stderr, "ERROR: an unknown error occured during compression.\n"); break;
+		if (compress((Bytef*)zbuf, &zlen, (const Bytef*)buf, len) != Z_OK)
+		{
+			printf("ERROR in compression\n");
+		}
+		else {
+			SendChars(zbuf, zlen);
 		}
 	}
 	else
@@ -132,7 +123,23 @@ void XzCompress::Encode(void)
 
 void XzCompress::Decode(void)
 {
-	direct = 1;	// set direction needed by parent [Get|Send]Chars()
+/*
+ZEXTERN int ZEXPORT uncompress OF((Bytef *dest,   uLongf *destLen,
+                                   const Bytef *source, uLong sourceLen));
+     Decompresses the source buffer into the destination buffer.  sourceLen is
+   the byte length of the source buffer. Upon entry, destLen is the total
+   size of the destination buffer, which must be large enough to hold the
+   entire uncompressed data. (The size of the uncompressed data must have
+   been saved previously by the compressor and transmitted to the decompressor
+   by some mechanism outside the scope of this compression library.)
+   Upon exit, destLen is the actual size of the compressed buffer.
+     This function can be used to decompress a whole file at once if the
+   input file is mmap'ed.
+
+     uncompress returns Z_OK if success, Z_MEM_ERROR if there was not
+   enough memory, Z_BUF_ERROR if there was not enough room in the output
+   buffer, or Z_DATA_ERROR if the input data was corrupted.
+*/
 
 	// get buffer
 	char chunk[1024];
@@ -151,24 +158,15 @@ void XzCompress::Decode(void)
 
 	//printf("Decoding complength{%ld} uncomp{%ld}\n", zlen, blen);
 	if (zlen) {
-		unsigned long blen = zlen*20;	// trust compression is less than 2000%
+		unsigned long blen = zlen*20;	// trust compression is less than 1000%
 		char *buf = new char[blen]; 
 		//printf("Doing decompress {%s}\n", zbuf);
 		slen = 0;
-		size_t zpos = 0;
-		size_t bpos = 0;
-
-		switch (lzma_stream_buffer_decode((uint64_t *)&memlimit, 0, NULL, (const uint8_t*)zbuf, &zpos, (size_t)zlen, (uint8_t*)buf, &bpos, (size_t)&blen)){
-			case LZMA_OK: SendChars(buf, bpos); slen = bpos; break;
-			case LZMA_FORMAT_ERROR: fprintf(stderr, "ERROR: format error encountered during decompression.\n"); break;
-			case LZMA_OPTIONS_ERROR: fprintf(stderr, "ERROR: options error encountered during decompression.\n"); break;
-			case LZMA_DATA_ERROR: fprintf(stderr, "ERROR: corrupt data during decompression.\n"); break;
-			case LZMA_NO_CHECK: fprintf(stderr, "ERROR: no_check error encountered during decompression.\n"); break;
-			case LZMA_UNSUPPORTED_CHECK: fprintf(stderr, "ERROR: unsupported_check error encountered during decompression.\n"); break;
-			case LZMA_MEMLIMIT_ERROR: fprintf(stderr, "ERROR: memlimit error encountered during decompression.\n"); break;
-			case LZMA_MEM_ERROR: fprintf(stderr, "ERROR: not enough memory during decompression.\n"); break;
-			case LZMA_BUF_ERROR: fprintf(stderr, "ERROR: not enough room in the out buffer during decompression.\n"); break;
-			case LZMA_PROG_ERROR: fprintf(stderr, "ERROR: program error encountered during decompression.\n"); break;
+		switch (uncompress((Bytef*)buf, &blen, (Bytef*)zbuf, zlen)){
+			case Z_OK: SendChars(buf, blen); slen = blen; break;
+			case Z_MEM_ERROR: fprintf(stderr, "ERROR: not enough memory during decompression.\n"); break;
+			case Z_BUF_ERROR: fprintf(stderr, "ERROR: not enough room in the out buffer during decompression.\n"); break;
+			case Z_DATA_ERROR: fprintf(stderr, "ERROR: corrupt data during decompression.\n"); break;
 			default: fprintf(stderr, "ERROR: an unknown error occured during decompression.\n"); break;
 		}
 		delete [] buf;
@@ -179,35 +177,5 @@ void XzCompress::Decode(void)
 	//printf("Finished decoding\n");
 	free (zbuf);
 }
-
-
-/******************************************************************************
- * XzCompress::SetLevel - This function sets the compression level of the
- *			compressor.
- */
-
-void XzCompress::setLevel(int l) {
-	level = l;
-
-	// having changed the compression level, we need to adjust our memlimit accordingly,
-	// as in the constructor:
-
-	// start with the estimated memory usage for our preset
-	memlimit = lzma_easy_decoder_memusage(level | LZMA_PRESET_EXTREME);
-	
-	// and round up to a power of 2--
-	// bit twiddle hack to determine next greatest power of 2 from:
-	// http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-	memlimit--;
-	memlimit |= memlimit >> 1;
-	memlimit |= memlimit >> 2;
-	memlimit |= memlimit >> 4;
-	memlimit |= memlimit >> 8;
-	memlimit |= memlimit >> 16;
-	memlimit++;
-
-	// double that for safety's sake
-	memlimit <<= 1;
-};
 
 SWORD_NAMESPACE_END

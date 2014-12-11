@@ -18,6 +18,7 @@
 #include <swmgr.h>		// C++ Sword API
 #include <localemgr.h>
 #include <versekey.h>
+class sword::SWModule;
 #endif
 
 /** the major types as returned in -[SwordModule -typeString] */
@@ -116,9 +117,9 @@
 }
 
 // ------------------- getter / setter -------------------
-@property (strong, readwrite) NSDictionary *modules;
-@property (strong, readwrite) NSString *modulesPath;
-@property (strong, readwrite) NSLock *managerLock;
+@property (retain, readwrite) NSDictionary *modules;
+@property (retain, readwrite) NSString *modulesPath;
+@property (retain, readwrite) NSLock *managerLock;
 @property (readwrite) BOOL temporaryManager;
 
 // --------------------- methods -----------------------

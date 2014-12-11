@@ -13,7 +13,7 @@
 @synthesize preVerseHeading;
 
 + (id)textEntryForKey:(NSString *)aKey andText:(NSString *)aText {
-    return [[SwordBibleTextEntry alloc] initWithKey:aKey andText:aText];
+    return [[[SwordBibleTextEntry alloc] initWithKey:aKey andText:aText] autorelease];
 }
 
 - (id)initWithKey:(NSString *)aKey andText:(NSString *)aText {
@@ -21,11 +21,18 @@
     if(self) {
         self.key = aKey;
         self.text = aText;
-        self.preVerseHeading = @"";
     }    
     return self;
 }
 
+- (void)finalize {
+    [super finalize];
+}
 
+- (void)dealloc {
+    [self setPreVerseHeading:nil];
+    
+    [super dealloc];
+}
 
 @end

@@ -32,6 +32,7 @@ typedef sword::multimapwithdefault<sword::SWBuf, sword::SWBuf, std::less <sword:
     DLog(@"");
     
     if(configPath != value) {
+        [configPath release];
         configPath = [value copy];
         
         if(value == nil) {
@@ -59,7 +60,7 @@ typedef sword::multimapwithdefault<sword::SWBuf, sword::SWBuf, std::less <sword:
                 config.Save();
 
                 // create default Install source
-                SwordInstallSource *is = [[SwordInstallSource alloc] initWithType:INSTALLSOURCE_TYPE_FTP];
+                SwordInstallSource *is = [[[SwordInstallSource alloc] initWithType:INSTALLSOURCE_TYPE_FTP] autorelease];
                 [is setCaption:@"CrossWire"];
                 [is setSource:@"ftp.crosswire.org"];
                 [is setDirectory:@"/pub/sword/raw"];
@@ -99,7 +100,7 @@ typedef sword::multimapwithdefault<sword::SWBuf, sword::SWBuf, std::less <sword:
 }
 
 + (SwordInstallSourceManager *)controllerWithPath:(NSString *)aPath {
-    return [[SwordInstallSourceManager alloc] initWithPath:aPath createPath:YES];
+    return [[[SwordInstallSourceManager alloc] initWithPath:aPath createPath:YES] autorelease];
 }
 
 /**
@@ -154,7 +155,7 @@ base path of the module installation
         // init install sources
         for(InstallSourceMap::iterator it = swInstallMgr->sources.begin(); it != swInstallMgr->sources.end(); it++) {
             sword::InstallSource *sis = it->second;
-            SwordInstallSource *is = [[SwordInstallSource alloc] initWithSource:sis];
+            SwordInstallSource *is = [[[SwordInstallSource alloc] initWithSource:sis] autorelease];
             
             [self.installSources setObject:is forKey:[is caption]];
             // also add to list
@@ -163,6 +164,13 @@ base path of the module installation
     }
 }
 
+- (void)finalize {
+    if(swInstallMgr != nil) {
+        delete swInstallMgr;
+    }
+
+    [super finalize];
+}
 
 - (void)dealloc {
     if(swInstallMgr != nil) {
@@ -170,7 +178,11 @@ base path of the module installation
     }
     
     [self setConfigPath:nil];
+    [self setInstallSources:nil];
+    [self setInstallSourceList:nil];
+    [self setConfigFilePath:nil];
     
+    [super dealloc];
 }
 
 - (void)addInstallSource:(SwordInstallSource *)is {
@@ -297,7 +309,7 @@ base path of the module installation
 		module = it->first;
 		status = it->second;
         
-        SwordModule *mod = [[SwordModule alloc] initWithSWModule:module];
+        SwordModule *mod = [[[SwordModule alloc] initWithSWModule:module] autorelease];
         [mod setStatus:status];
         [ar addObject:mod];
 	}

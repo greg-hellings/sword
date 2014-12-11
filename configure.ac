@@ -5,7 +5,7 @@
 # Version change: Change line 8 only !
 # Change it immediately after a release
 
-AC_INIT(sword, 1.7.3, sword-bugs@crosswire.org, sword, http://crosswire.org/sword)
+AC_INIT(sword, 1.7.3.901, sword-bugs@crosswire.org, sword, http://crosswire.org/sword)
 AC_CONFIG_SRCDIR(sword.bmp)
 AC_PREREQ(2.52)
 AC_REVISION($Revision: 1.45 $)
@@ -49,10 +49,6 @@ fi
 # ---------------------------------------------------------------------
 AC_ARG_WITH(zlib,
 	AC_HELP_STRING([--with-zlib],[allow zlib compressed modules (default=yes)]),,with_zlib=yes)
-AC_ARG_WITH(bzip2,
-	AC_HELP_STRING([--with-bzip2],[allow bzip2 compressed modules (default=yes)]),,with_bzip2=yes)
-AC_ARG_WITH(xz,
-	AC_HELP_STRING([--with-xz],[allow xz compressed modules (default=yes)]),,with_xz=yes)
 AC_ARG_WITH(icu,
 	AC_HELP_STRING([--with-icu],[use ICU for unicode (default=yes)]),,with_icu=yes)
 AC_ARG_WITH(icusword,
@@ -69,8 +65,6 @@ AC_ARG_WITH(curl_sftp,
 #	AC_HELP_STRING([--with-lucene],[include lucene support for searching (default=no)]),,with_lucene=no)
 AC_ARG_WITH([internalregex],
 	AS_HELP_STRING([--with-internalregex], [Compile using SWORDs internal copy of regex]))
-AC_ARG_WITH(xapian,
-	AC_HELP_STRING([--with-xapian],[use xapian search engine (default=yes)]),,with_xapian=yes)
 
 
 # ---------------------------------------------------------------------
@@ -129,28 +123,6 @@ fi
 if test x$with_zlib = xno; then
 	AM_CFLAGS="$AM_CFLAGS -DEXCLUDEZLIB"
 	AM_CXXFLAGS="$AM_CXXFLAGS -DEXCLUDEZLIB"
-fi
-
-if test x$with_bzip2  = xyes; then
-	AC_CHECK_LIB(bz2, BZ2_bzBuffToBuffCompress,,with_bzip2="no")
-else
-	with_bzip2="no"
-fi
-
-if test x$with_bzip2 = xno; then
-	AM_CFLAGS="$AM_CFLAGS -DEXCLUDEBZIP2"
-	AM_CXXFLAGS="$AM_CXXFLAGS -DEXCLUDEBZIP2"
-fi
-
-if test x$with_xz  = xyes; then
-	AC_CHECK_LIB(lzma, lzma_easy_buffer_encode,,with_xz="no")
-else
-	with_xz="no"
-fi
-
-if test x$with_xz = xno; then
-	AM_CFLAGS="$AM_CFLAGS -DEXCLUDEXZ"
-	AM_CXXFLAGS="$AM_CXXFLAGS -DEXCLUDEXZ"
 fi
 
 AS_IF([test "x$with_internalregex" = "xyes"],
@@ -306,23 +278,6 @@ else
 fi
 fi
 
-if test x$with_xapian  = xyes; then
-	AC_LANG_CPLUSPLUS
-	AC_CHECK_LIB(xapian,main,,with_xapian="no")
-else
-	with_xapian="no"
-fi
-
-if test x$with_xapian = xyes; then
-	AM_CFLAGS="$AM_CFLAGS -DUSEXAPIAN"
-	AM_CXXFLAGS="$AM_CXXFLAGS -DUSEXAPIAN"
-	if test x$with_clucene = xno; then
-		with_clucene="no"
-	else
-		with_clucene="$with_clucene; but using XAPIAN instead"
-	fi
-fi
-
 AC_CHECK_FUNCS(vsnprintf, [have_vsnprintf="yes"])
 
 # ---------------------------------------------------------------------
@@ -367,8 +322,6 @@ AC_SUBST(SWORD_VERSION_NANO)
 # Substitute variables into makefiles
 # ---------------------------------------------------------------------
 AC_SUBST(with_zlib)
-AC_SUBST(with_bzip2)
-AC_SUBST(with_xz)
 AC_SUBST(with_icu)
 AC_SUBST(with_icusword)
 AC_SUBST(with_conf)
@@ -398,8 +351,6 @@ AC_SUBST(CLUCENE_LIBS)
 # ---------------------------------------------------------------------
 
 AM_CONDITIONAL(HAVE_LIBZ, test x$with_zlib = xyes)
-AM_CONDITIONAL(HAVE_BZIP2, test x$with_bzip2 = xyes)
-AM_CONDITIONAL(HAVE_XZ, test x$with_xz = xyes)
 AM_CONDITIONAL(HAVE_ICU, test x$with_icu = xyes)
 AM_CONDITIONAL(HAVE_ICUSWORD, test x$with_icusword = xyes)
 AM_CONDITIONAL(HAVE_VSNPRINTF, test x$have_vsnprintf = xyes)
@@ -434,8 +385,6 @@ echo     "     BUILD TESTS:      $enable_tests"
 echo     "     BUILD EXAMPLES:   $enable_examples"
 echo     "     BUILD UTILITIES:  $enable_utilities"
 echo     "     LIBZ:             $with_zlib"
-echo     "     BZIP2:            $with_bzip2"
-echo     "     XZ:               $with_xz"
 echo     "     ICU:              $with_icu"
 echo     "     ICUSWORD:         $with_icusword"
 echo     "     CXX11REGEX:       $with_cxx11regex"
@@ -444,7 +393,6 @@ echo     "     CURL SFTP:        $with_curl_sftp"
 echo     "     INTERNAL FTPLIB:  $with_internalftplib"
 echo     "     INTERNAL REGEX:   $with_internalregex"
 echo     "     CLUCENE:          $with_clucene"
-echo     "     XAPIAN:           $with_xapian"
 echo
 echo
 

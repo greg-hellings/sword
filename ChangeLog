@@ -4,24 +4,8 @@ API ChangeLog
 	Corrected anomalous OSIS highlighting output w/GHellings' patches in
 		src/modules/filters/osis{plain,xhtml}.cpp
 
-12-Jul-2014	Костя Маслюк <kostyamaslyuk@gmail.com>
-	Versification mapping implementation and example at
-		examples/tasks/parallelbibles.cpp
-
 27-Apr-2014	Troy A. Griffitts <scribe@crosswire.org>
 	Added C# bindings contributed by Daniel Hughes <trampster@gmail.com>
-
-17-Mar-2014	Chris Little <chrislit@crosswire.org>
-	Added zVerse4, zText4, & zCom4 classes to support compressed text/
-		commentary modules with entry sizes > 64k
-
-3-Mar-2014	Chris Little <chrislit@crosswire.org>
-	Added support for bzip2 (Burrows-Wheeler) module compression via libbz2
-	Added support for xz (LZMA2) module compression via liblzma
-
-30-Dec-2013 	Peter von Kaehne <refdoc@crosswire.org>
-	Added LaTeX output filters
-
 
 * Release 1.7.0 *
 

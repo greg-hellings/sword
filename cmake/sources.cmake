@@ -48,7 +48,6 @@ SET(sword_base_module_SOURCES
 	src/modules/comments/rawcom4/rawcom4.cpp
 	src/modules/comments/rawfiles/rawfiles.cpp
 	src/modules/comments/zcom/zcom.cpp
-	src/modules/comments/zcom4/zcom4.cpp
 	src/modules/common/rawstr.cpp
 	src/modules/common/rawstr4.cpp
 	src/modules/common/swcomprs.cpp
@@ -57,7 +56,6 @@ SET(sword_base_module_SOURCES
 	src/modules/common/rawverse4.cpp
 	src/modules/common/swcipher.cpp
 	src/modules/common/zverse.cpp
-	src/modules/common/zverse4.cpp
 	src/modules/common/zstr.cpp
 	src/modules/common/entriesblk.cpp
 	src/modules/common/sapphire.cpp
@@ -76,7 +74,6 @@ SET(sword_base_module_SOURCES
 	src/modules/filters/gbfredletterwords.cpp
 	src/modules/filters/gbfmorph.cpp
 	src/modules/filters/gbfwordjs.cpp
-	src/modules/filters/gbflatex.cpp
 
 	src/modules/filters/thmlstrongs.cpp
 	src/modules/filters/thmlfootnotes.cpp
@@ -92,13 +89,11 @@ SET(sword_base_module_SOURCES
 	src/modules/filters/thmlhtmlhref.cpp
 	src/modules/filters/thmlwebif.cpp
 	src/modules/filters/thmlwordjs.cpp
-	src/modules/filters/thmllatex.cpp
 
 	src/modules/filters/teiplain.cpp
 	src/modules/filters/teirtf.cpp
 	src/modules/filters/teixhtml.cpp
 	src/modules/filters/teihtmlhref.cpp
-	src/modules/filters/teilatex.cpp
 
 	src/modules/filters/gbfthml.cpp
 	src/modules/filters/gbfosis.cpp
@@ -106,11 +101,11 @@ SET(sword_base_module_SOURCES
 	src/modules/filters/thmlplain.cpp
 	src/modules/filters/osisosis.cpp
 
-	src/modules/filters/osisenum.cpp
-	src/modules/filters/osisglosses.cpp
-	src/modules/filters/osisxlit.cpp
+	src/modules/filters/osisenum.cpp 
+	src/modules/filters/osisglosses.cpp 
+	src/modules/filters/osisxlit.cpp 
 	src/modules/filters/osisheadings.cpp
-	src/modules/filters/osisfootnotes.cpp
+	src/modules/filters/osisfootnotes.cpp 
 	src/modules/filters/osishtmlhref.cpp
 	src/modules/filters/osisxhtml.cpp
 	src/modules/filters/osiswebif.cpp
@@ -125,7 +120,6 @@ SET(sword_base_module_SOURCES
 	src/modules/filters/osiswordjs.cpp
 	src/modules/filters/osismorphsegmentation.cpp
 	src/modules/filters/osisreferencelinks.cpp
-	src/modules/filters/osislatex.cpp	
 
 	src/modules/filters/latin1utf8.cpp
 	src/modules/filters/latin1utf16.cpp
@@ -135,7 +129,6 @@ SET(sword_base_module_SOURCES
 	src/modules/filters/utf8latin1.cpp
 	src/modules/filters/unicodertf.cpp
 	src/modules/filters/scsuutf8.cpp
-	src/modules/filters/utf8scsu.cpp
 
 	src/modules/filters/utf8cantillation.cpp
 	src/modules/filters/utf8hebrewpoints.cpp
@@ -160,7 +153,6 @@ SET(sword_base_module_SOURCES
 	src/modules/texts/rawtext/rawtext.cpp
 	src/modules/texts/rawtext4/rawtext4.cpp
 	src/modules/texts/ztext/ztext.cpp
-	src/modules/texts/ztext4/ztext4.cpp
 )
 SOURCE_GROUP("src\\modules" FILES ${sword_base_module_SOURCES})
 
@@ -209,6 +201,8 @@ ENDIF(NOT MSVC)
 # Sources relying on ZLib
 SET(sword_zlib_used_SOURCES
 	src/modules/common/zipcomprs.cpp
+	src/modules/common/bz2comprs.cpp
+	src/modules/common/xzcomprs.cpp
 	src/utilfuns/zlib/untgz.c
 )
 SET(sword_zlib_nofound_SOURCES
@@ -227,16 +221,6 @@ SET(sword_zlib_nofound_SOURCES
 	src/utilfuns/zlib/trees.c
 	src/utilfuns/zlib/uncompr.c
 	src/utilfuns/zlib/zutil.c
-)
-
-# Sources relying on bzip2 (libbz2)
-SET(sword_bzip2_used_SOURCES
-	src/modules/common/bz2comprs.cpp
-)
-
-# Sources relying on xz (liblzma)
-SET(sword_xz_used_SOURCES
-	src/modules/common/xzcomprs.cpp
 )
 
 # Sources relying on cURL
@@ -270,7 +254,6 @@ SET(sword_icu_found_SOURCES
 
 # Headers
 SET(SWORD_INSTALL_HEADERS
-	include/bz2comprs.h
 	include/canon.h
 	include/canon_abbrevs.h
 	include/cipherfil.h
@@ -303,9 +286,8 @@ SET(SWORD_INSTALL_HEADERS
 	include/gbfstrongs.h
 	include/gbfwordjs.h
 	include/gbfthml.h
-	include/gbflatex.h
-
 	include/greeklexattribs.h
+
 	include/hebrewmcim.h
 	include/hrefcom.h
 	include/installmgr.h
@@ -331,14 +313,13 @@ SET(SWORD_INSTALL_HEADERS
 	include/osisrtf.h
 	include/osisosis.h
 	include/osisstrongs.h
-	include/osisfootnotes.h
-	include/osislemma.h
-	include/osisredletterwords.h
-	include/osisscripref.h
-	include/osiswordjs.h
-	include/osisvariants.h
-	include/osisreferencelinks.h
-	include/osislatex.h
+	include/osisfootnotes.h   
+	include/osislemma.h   
+	include/osisredletterwords.h   
+	include/osisscripref.h   
+	include/osiswordjs.h   
+	include/osisvariants.h   
+	include/osisreferencelinks.h   
 
 	include/papyriplain.h
 	include/rawcom.h
@@ -399,13 +380,11 @@ SET(SWORD_INSTALL_HEADERS
 	include/thmlstrongs.h
 	include/thmlvariants.h
 	include/thmlwordjs.h
-	include/thmllatex.h
 
 	include/teiplain.h
 	include/teirtf.h
 	include/teixhtml.h
 	include/teihtmlhref.h
-	include/teilatex.h
 
 	include/treekey.h
 	include/treekeyidx.h
@@ -423,7 +402,6 @@ SET(SWORD_INSTALL_HEADERS
 	include/utf8latin1.h
 	include/utf8nfc.h
 	include/utf8nfkd.h
-	include/utf8scsu.h
 	include/utf8transliterator.h
 	include/utf8utf16.h
 	include/utilstr.h
@@ -431,17 +409,13 @@ SET(SWORD_INSTALL_HEADERS
 
 	include/versekey.h
 	include/versetreekey.h
-	include/xzcomprs.h
 	include/zcom.h
-	include/zcom4.h
 	include/zconf.h
 	include/zipcomprs.h
 	include/zld.h
 	include/zstr.h
 	include/ztext.h
-	include/ztext4.h
 	include/zverse.h
-	include/zverse4.h
 
 	include/canon_kjva.h
 	include/canon_leningrad.h
