@@ -12,27 +12,27 @@
 @implementation SwordVerseKey
 
 + (SwordVerseKey *)verseKey {
-    return [[SwordVerseKey alloc] init];
+    return [[[SwordVerseKey alloc] init] autorelease];
 }
 
 + (SwordVerseKey *)verseKeyWithVersification:(NSString *)scheme {
-    return [[SwordVerseKey alloc] initWithVersification:scheme];
+    return [[[SwordVerseKey alloc] initWithVersification:scheme] autorelease];
 }
 
 + (SwordVerseKey *)verseKeyWithRef:(NSString *)aRef {
-    return [[SwordVerseKey alloc] initWithRef:aRef];
+    return [[[SwordVerseKey alloc] initWithRef:aRef] autorelease];
 }
 
 + (SwordVerseKey *)verseKeyWithRef:(NSString *)aRef v11n:(NSString *)scheme {
-    return [[SwordVerseKey alloc] initWithRef:aRef v11n:scheme];
+    return [[[SwordVerseKey alloc] initWithRef:aRef v11n:scheme] autorelease];
 }
 
 + (SwordVerseKey *)verseKeyWithSWVerseKey:(sword::VerseKey *)aVk {
-    return [[SwordVerseKey alloc] initWithSWVerseKey:aVk];
+    return [[[SwordVerseKey alloc] initWithSWVerseKey:aVk] autorelease];
 }
 
 + (SwordVerseKey *)verseKeyWithSWVerseKey:(sword::VerseKey *)aVk makeCopy:(BOOL)copy {
-    return [[SwordVerseKey alloc] initWithSWVerseKey:aVk makeCopy:copy];    
+    return [[[SwordVerseKey alloc] initWithSWVerseKey:aVk makeCopy:copy] autorelease];    
 }
 
 - (id)init {
@@ -60,8 +60,8 @@
 }
 
 - (SwordVerseKey *)initWithRef:(NSString *)aRef v11n:(NSString *)scheme {
-    sword::VerseKey vk;
-    self = [super initWithSWKey:&vk makeCopy:YES];
+    sword::VerseKey *vk = new sword::VerseKey();            
+    self = [super initWithSWKey:vk];
     if(self) {
         created = YES;
         if(scheme) {
@@ -70,36 +70,38 @@
         
         if(aRef) {
             [self setKeyText:aRef];
-        }
-    }
+        }        
+    }    
     
     return self;
 }
 
+- (void)finalize {
+    [super finalize];
+}
 
+- (void)dealloc {
+    [super dealloc];    
+}
 
 - (SwordKey *)clone {
     return [SwordVerseKey verseKeyWithSWVerseKey:(sword::VerseKey *)sk];
 }
 
-- (int)index {
-    return ((sword::VerseKey *)sk)->getIndex();
-}
-
 - (BOOL)headings {
-    return (BOOL)((sword::VerseKey *)sk)->isIntros();
+    return (BOOL)((sword::VerseKey *)sk)->Headings();
 }
 
 - (void)setHeadings:(BOOL)flag {
-    ((sword::VerseKey *)sk)->setIntros(flag);
+    ((sword::VerseKey *)sk)->Headings(flag);
 }
 
 - (BOOL)autoNormalize {
-    return (BOOL)((sword::VerseKey *)sk)->isAutoNormalize();
+    return (BOOL)((sword::VerseKey *)sk)->AutoNormalize();
 }
 
 - (void)setAutoNormalize:(BOOL)flag {
-    ((sword::VerseKey *)sk)->setAutoNormalize(flag);
+    ((sword::VerseKey *)sk)->AutoNormalize(flag);
 }
 
 - (int)testament {

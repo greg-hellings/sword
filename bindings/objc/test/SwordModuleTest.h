@@ -6,4 +6,13 @@
 //  Copyright 2010 Software by MABE. All rights reserved.
 //
 
-#import <XCTest/XCTest.h>
+#import <SenTestingKit/SenTestingKit.h>
+
+@class SwordModule, SwordManager;
+
+@interface SwordModuleTest : SenTestCase {
+    SwordManager *mgr;
+    SwordModule *mod;
+}
+
+@end

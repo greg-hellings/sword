@@ -60,16 +60,30 @@
     return self;
 }
 
+- (void)finalize {
+    if(temporarySource == NO) {
+        //LogL(LOG_DEBUG, @"[SwordInstallSource -finalize] deleting swInstallSource");
+        //delete swInstallSource;
+    }
+    
+    [super finalize];
+}
 
+- (void)dealloc {
+    [swordManager release];
+    [super dealloc];
+}
 
 - (void)setSwordManager:(SwordManager *)swManager {
+    [swManager retain];
+    [swordManager release];
     swordManager = swManager;
 }
 
 // accessors
 - (NSString *)caption {
     const char *str = swInstallSource->caption;
-    return [[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding];
+    return [[[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding] autorelease];
 }
 
 - (void)setCaption:(NSString *)aCaption {
@@ -78,7 +92,7 @@
 
 - (NSString *)type {
     const char *str = swInstallSource->type;
-    return [[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding];
+    return [[[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding] autorelease];
 }
 
 - (void)setType:(NSString *)aType {
@@ -87,7 +101,7 @@
 
 - (NSString *)source {
     const char *str = swInstallSource->source;
-    return [[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding];
+    return [[[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding] autorelease];
 }
 
 - (void)setSource:(NSString *)aSource {
@@ -96,7 +110,7 @@
 
 - (NSString *)directory {
     const char *str = swInstallSource->directory;
-    return [[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding];
+    return [[[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding] autorelease];
 }
 
 - (void)setDirectory:(NSString *)aDir {

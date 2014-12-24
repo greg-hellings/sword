@@ -9,7 +9,7 @@
 
 @interface FilterProviderFactory ()
 
-@property(nonatomic, strong) id <FilterProvider> filterProvider;
+@property(nonatomic, retain) id <FilterProvider> filterProvider;
 
 @end
 
@@ -33,6 +33,10 @@
     return self.filterProvider;
 }
 
+- (void)dealloc {
+    self.filterProvider = nil;
+    [super dealloc];
+}
 
 
 @end

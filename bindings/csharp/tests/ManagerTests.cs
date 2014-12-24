@@ -14,7 +14,6 @@
 using System;
 using NUnit.Framework;
 using System.IO;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Sword.Tests
@@ -85,20 +84,10 @@ namespace Sword.Tests
 		public void AvailableLocales_Get_DoesntCrash()
 		{
 			//act
-			string[] availableLocales = _manager.AvailableLocales.ToArray();
+			var availableLocales = _manager.AvailableLocales.ToArray();
 			
 			//Assert
-			Assert.That (availableLocales.Length > 0);
-		}
-		
-		[Test]
-		public void AvailableLocales_Get_ContainsEnglish()
-		{
-			//act
-			string[] availableLocales = _manager.AvailableLocales.ToArray();
-			
-			//Assert
-			Assert.That (availableLocales.Any(locale => locale == "en"));
+			Assert.That (availableLocales[0].Contains("en"));
 		}
 		
 		[Test]

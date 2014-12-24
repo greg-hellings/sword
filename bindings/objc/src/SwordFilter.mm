@@ -30,6 +30,9 @@
     return self;
 }
 
+- (void)dealloc {
+    [super dealloc];
+}
 
 - (sword::SWFilter *)swFilter {
     return swFilter;
@@ -39,7 +42,7 @@
 
 @implementation SwordOsisHtmlRefFilter
 + (SwordOsisHtmlRefFilter *)filter {
-    return [[SwordOsisHtmlRefFilter alloc] init];
+    return [[[SwordOsisHtmlRefFilter alloc] init] autorelease];
 }
 
 - (id)init {
@@ -49,7 +52,7 @@
 
 @implementation SwordOsisXHtmlFilter
 + (SwordOsisXHtmlFilter *)filter {
-    return [[SwordOsisXHtmlFilter alloc] init];
+    return [[[SwordOsisXHtmlFilter alloc] init] autorelease];
 }
 
 - (id)init {
@@ -59,7 +62,7 @@
 
 @implementation SwordOsisPlainFilter
 + (SwordOsisPlainFilter *)filter {
-    return [[SwordOsisPlainFilter alloc] init];
+    return [[[SwordOsisPlainFilter alloc] init] autorelease];
 }
 
 - (id)init {
@@ -69,7 +72,7 @@
 
 @implementation SwordThmlHtmlFilter
 + (SwordThmlHtmlFilter *)filter {
-    return [[SwordThmlHtmlFilter alloc] init];
+    return [[[SwordThmlHtmlFilter alloc] init] autorelease];
 }
 
 - (id)init {
@@ -79,7 +82,7 @@
 
 @implementation SwordThmlPlainFilter
 + (SwordThmlPlainFilter *)filter {
-    return [[SwordThmlPlainFilter alloc] init];
+    return [[[SwordThmlPlainFilter alloc] init] autorelease];
 }
 
 - (id)init {
@@ -89,7 +92,7 @@
 
 @implementation SwordGbfHtmlFilter
 + (SwordGbfHtmlFilter *)filter {
-    return [[SwordGbfHtmlFilter alloc] init];
+    return [[[SwordGbfHtmlFilter alloc] init] autorelease];
 }
 
 - (id)init {
@@ -99,7 +102,7 @@
 
 @implementation SwordGbfPlainFilter
 + (SwordGbfPlainFilter *)filter {
-    return [[SwordGbfPlainFilter alloc] init];
+    return [[[SwordGbfPlainFilter alloc] init] autorelease];
 }
 
 - (id)init {
@@ -109,7 +112,7 @@
 
 @implementation SwordTeiHtmlFilter
 + (SwordTeiHtmlFilter *)filter {
-    return [[SwordTeiHtmlFilter alloc] init];
+    return [[[SwordTeiHtmlFilter alloc] init] autorelease];
 }
 
 - (id)init {
@@ -119,7 +122,7 @@
 
 @implementation SwordTeiXHtmlFilter
 + (SwordTeiXHtmlFilter *)filter {
-    return [[SwordTeiXHtmlFilter alloc] init];
+    return [[[SwordTeiXHtmlFilter alloc] init] autorelease];
 }
 
 - (id)init {
@@ -129,7 +132,7 @@
 
 @implementation SwordTeiPlainFilter
 + (SwordTeiPlainFilter *)filter {
-    return [[SwordTeiPlainFilter alloc] init];
+    return [[[SwordTeiPlainFilter alloc] init] autorelease];
 }
 
 - (id)init {

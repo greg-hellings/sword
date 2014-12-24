@@ -27,17 +27,11 @@
 
 #include <scsuutf8.h>
 #include <latin1utf8.h>
-#include <utf16utf8.h>
 
 #include <unicodertf.h>
 #include <utf8latin1.h>
 #include <utf8utf16.h>
 #include <utf8html.h>
-
-#ifdef _ICU_
-#include <utf8scsu.h>
-#endif 
-
 #include <swmodule.h>
 
 #include <swmgr.h>
@@ -57,7 +51,6 @@ EncodingFilterMgr::EncodingFilterMgr(char enc)
 
 	scsuutf8   = new SCSUUTF8();
 	latin1utf8 = new Latin1UTF8();
-	utf16utf8  = new UTF16UTF8();
 
 	encoding = enc;
 
@@ -66,9 +59,6 @@ EncodingFilterMgr::EncodingFilterMgr(char enc)
 		case ENC_UTF16:  targetenc = new UTF8UTF16();  break;
 		case ENC_RTF:    targetenc = new UnicodeRTF(); break;
 		case ENC_HTML:   targetenc = new UTF8HTML();   break;
-#ifdef _ICU_
-		case ENC_SCSU:   targetenc = new UTF8SCSU();   break;
-#endif
 		default: // i.e. case ENC_UTF8
 			targetenc = NULL;
 	}
@@ -81,7 +71,6 @@ EncodingFilterMgr::EncodingFilterMgr(char enc)
 EncodingFilterMgr::~EncodingFilterMgr() {
 	delete scsuutf8;
 	delete latin1utf8;
-	delete utf16utf8;
 	delete targetenc;
 }
 
@@ -92,13 +81,10 @@ void EncodingFilterMgr::AddRawFilters(SWModule *module, ConfigEntMap &section) {
 
 	SWBuf encoding = ((entry = section.find("Encoding")) != section.end()) ? (*entry).second : (SWBuf)"";
 	if (!encoding.length() || !stricmp(encoding.c_str(), "Latin-1")) {
-		module->addRawFilter(latin1utf8);
+                module->addRawFilter(latin1utf8);
 	}
 	else if (!stricmp(encoding.c_str(), "SCSU")) {
 		module->addRawFilter(scsuutf8);
-	}
-	else if (!stricmp(encoding.c_str(), "UTF-16")) {
-		module->addRawFilter(utf16utf8);
 	}
 }
 
@@ -126,9 +112,6 @@ char EncodingFilterMgr::Encoding(char enc) {
 			case ENC_UTF16:  targetenc = new UTF8UTF16();  break;
 			case ENC_RTF:    targetenc = new UnicodeRTF(); break;
 			case ENC_HTML:   targetenc = new UTF8HTML();   break;
-#ifdef _ICU_
-			case ENC_SCSU:   targetenc = new UTF8SCSU();   break;
-#endif
 			default: // i.e. case ENC_UTF8
 				targetenc = NULL;
 		}

@@ -44,7 +44,7 @@ using namespace sword;
  *			-4  - Lucene
  */
 
-char SEARCH_TYPE=-4;
+char SEARCH_TYPE=-2;
 
 char printed = 0;
 void percentUpdate(char percent, void *userData) {
@@ -119,12 +119,9 @@ int main(int argc, char **argv)
 		listkey = target->search(argv[4], SEARCH_TYPE, /*SEARCHFLAG_MATCHWHOLEENTRY*/ REG_ICASE, 0, 0, &percentUpdate, &lineLen);
 		std::cerr << std::endl;
 	}
-// we don't want to sort by verse if we've been given scores
-//	listkey.sort();
+	listkey.sort();
 	while (!listkey.popError()) {
-		std::cout << (const char *)listkey;
-		if (listkey.getElement()->userData) std::cout << " : " << (__u64)listkey.getElement()->userData << "%";
-		std::cout << std::endl;
+		std::cout << (const char *)listkey << std::endl;
 		listkey++;
 	}
 

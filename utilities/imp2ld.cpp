@@ -4,7 +4,7 @@
  *
  * $Id$
  *
- * Copyright 2002-2014 CrossWire Bible Society (http://www.crosswire.org)
+ * Copyright 2002-2013 CrossWire Bible Society (http://www.crosswire.org)
  *	CrossWire Bible Society
  *	P. O. Box 2528
  *	Tempe, AZ  85280-2528
@@ -31,16 +31,8 @@
 #include <rawld.h>
 #include <rawld4.h>
 #include <zld.h>
-#include <lzsscomprs.h>
-#ifndef EXCLUDEZLIB
 #include <zipcomprs.h>
-#endif
-#ifndef EXCLUDEBZIP2
-#include <bz2comprs.h>
-#endif
-#ifndef EXCLUDEXZ
-#include <xzcomprs.h>
-#endif
+#include <lzsscomprs.h>
 #include <stdio.h>
 
 using std::string;
@@ -51,16 +43,15 @@ using namespace sword;
 
 void usage(const char *progName, const char *error = 0) {
 	if (error) fprintf(stderr, "\n%s: %s\n", progName, error);
-	fprintf(stderr, "\n=== imp2ld (Revision $Rev$) SWORD lexicon importer.\n");
+	fprintf(stderr, "\n=== imp2ld (Revision $Rev: 2234 $) SWORD lexicon importer.\n");
 	fprintf(stderr, "\nusage: %s <imp_file> [options]\n", progName);
 	fprintf(stderr, "  -a\t\t\t augment module if exists (default is to create new)\n");
-	fprintf(stderr, "  -z <l|z|b|x>\t\t use compression (default: none)\n");
-	fprintf(stderr, "\t\t\t\t l - LZSS; z - ZIP; b - bzip2; x - xz\n");
-	fprintf(stderr, "  -o <output_path>\t\t where to write data files.\n");
-	fprintf(stderr, "  -4\t\t\t use 4 byte size entries (default: 2).\n");
+	fprintf(stderr, "  -z\t\t\t use ZIP compression (default no compression)\n");
+	fprintf(stderr, "  -Z\t\t\t use LZSS compression (default no compression)\n");
+	fprintf(stderr, "  -o <output_path>\t where to write data files.\n");
+	fprintf(stderr, "  -4\t\t\t use 4 byte size entries (default is 2).\n");
 	fprintf(stderr, "  -b <entry_count>\t\t compression block size (default 30 entries)\n");
 	fprintf(stderr, "  -s\t\t\t case sensitive keys (default is not case sensitive)\n");
-	fprintf(stderr, "  -P\t\t\t disable key Strong's number padding (by default keys will be padded).");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "'imp' format is a simple standard for importing data into SWORD modules.\n"
 		"Required is a plain text file containing $$$key lines followed by content.\n\n"
@@ -88,7 +79,6 @@ int main(int argc, char **argv) {
 	SWCompress *compressor = 0;
 	SWBuf compType         = "";
 	bool fourByteSize      = false;
-	bool strongsPadding    = true;
 
 	if (argc < 2) usage(*argv);
 
@@ -100,16 +90,9 @@ int main(int argc, char **argv) {
 			append = true;
 		}
 		else if (!strcmp(argv[i], "-z")) {
+			if (compType.size()) usage(*argv, "Cannot specify both -z and -Z");
 			if (fourByteSize) usage(*argv, "Cannot specify both -z and -4");
 			compType = "ZIP";
-			if (i+1 < argc && argv[i+1][0] != '-') {
-				switch (argv[++i][0]) {
-				case 'l': compType = "LZSS"; break;
-				case 'z': compType = "ZIP"; break;
-				case 'b': compType = "BZIP2"; break;
-				case 'x': compType = "XZ"; break;
-				}
-			}
 		}
 		else if (!strcmp(argv[i], "-Z")) {
 			if (compType.size()) usage(*argv, "Cannot specify both -z and -Z");
@@ -118,9 +101,6 @@ int main(int argc, char **argv) {
 		}
 		else if (!strcmp(argv[i], "-4")) {
 			fourByteSize = true;
-		}
-		else if (!strcmp(argv[i], "-P")) {
-			strongsPadding = false;
 		}
 		else if (!strcmp(argv[i], "-b")) {
 			if (i+1 < argc) {
@@ -148,39 +128,21 @@ int main(int argc, char **argv) {
 	}
 
 	std::ifstream infile(inFileName);
-	if (!infile.is_open()) {
-		fprintf(stderr, "\nERROR: %s: could not open file for reading: %s\n\n", *argv, inFileName);
-		exit(-2);
-	}
+
 
 	SWModule *mod = 0;
 	SWKey *key, *linkKey;
 
-	if (compType == "LZSS") {
-		compressor = new LZSSCompress();
-	}
-	else if (compType == "ZIP") {
+	if (compType == "ZIP") {
 #ifndef EXCLUDEZLIB
 		compressor = new ZipCompress();
 #else
-		usage(*argv, "ERROR: SWORD library not compiled with ZIP compression support.\n\tBe sure libz is available when compiling SWORD library");
+		usage(*argv, "ERROR: SWORD library not compiled with ZIP compression support.\n\tBe sure libzip is available when compiling SWORD library");
 #endif
 	}
-	else if (compType == "BZIP2") {
-#ifndef EXCLUDEBZIP2
-		compressor = new Bzip2Compress();
-#else
-		usage(*argv, "ERROR: SWORD library not compiled with bzip2 compression support.\n\tBe sure libbz2 is available when compiling SWORD library");
-#endif
+	else if (compType == "LZSS") {
+		compressor = new LZSSCompress();
 	}
-	else if (compType == "XZ") {
-#ifndef EXCLUDEXZ
-		compressor = new XzCompress();
-#else
-		usage(*argv, "ERROR: SWORD library not compiled with xz compression support.\n\tBe sure liblzma is available when compiling SWORD library");
-#endif		
-	}
-
 
 	// setup module
 	if (!append) {
@@ -200,12 +162,12 @@ int main(int argc, char **argv) {
 	if (compressor) {
 		// Create a compressed text module allowing very large entries
 		// Taking defaults except for first, fourth, fifth and last argument
-		mod = new zLD(outPath, 0, 0, blockCount, compressor, 0, ENC_UNKNOWN, DIRECTION_LTR, FMT_UNKNOWN, 0, caseSensitive, strongsPadding);
+		mod = new zLD(outPath, 0, 0, blockCount, compressor, 0, ENC_UNKNOWN, DIRECTION_LTR, FMT_UNKNOWN, 0, caseSensitive);
 	}
 	else {
 		mod = (!fourByteSize)
-			? (SWModule *)new RawLD (outPath, 0, 0, 0, ENC_UNKNOWN, DIRECTION_LTR, FMT_UNKNOWN, 0, caseSensitive, strongsPadding)
-			: (SWModule *)new RawLD4(outPath, 0, 0, 0, ENC_UNKNOWN, DIRECTION_LTR, FMT_UNKNOWN, 0, caseSensitive, strongsPadding);
+			? (SWModule *)new RawLD (outPath, 0, 0, 0, ENC_UNKNOWN, DIRECTION_LTR, FMT_UNKNOWN, 0, caseSensitive)
+			: (SWModule *)new RawLD4(outPath, 0, 0, 0, ENC_UNKNOWN, DIRECTION_LTR, FMT_UNKNOWN, 0, caseSensitive);
 	}
 
 
@@ -262,8 +224,8 @@ int main(int argc, char **argv) {
 	infile.close();
 
 	delete linkKey;
-	delete mod;
 	delete key;
+	delete mod;
 
 	return 0;
 }

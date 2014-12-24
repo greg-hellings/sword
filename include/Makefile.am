@@ -32,9 +32,8 @@ pkginclude_HEADERS += $(swincludedir)/gbfrtf.h
 pkginclude_HEADERS += $(swincludedir)/gbfstrongs.h
 pkginclude_HEADERS += $(swincludedir)/gbfwordjs.h
 pkginclude_HEADERS += $(swincludedir)/gbfthml.h
-pkginclude_HEADERS += $(swincludedir)/gbflatex.h
-
 pkginclude_HEADERS += $(swincludedir)/greeklexattribs.h
+
 pkginclude_HEADERS += $(swincludedir)/hebrewmcim.h
 pkginclude_HEADERS += $(swincludedir)/hrefcom.h
 pkginclude_HEADERS += $(swincludedir)/installmgr.h
@@ -67,7 +66,6 @@ pkginclude_HEADERS += $(swincludedir)/osisscripref.h
 pkginclude_HEADERS += $(swincludedir)/osiswordjs.h   
 pkginclude_HEADERS += $(swincludedir)/osisvariants.h   
 pkginclude_HEADERS += $(swincludedir)/osisxlit.h   
-pkginclude_HEADERS += $(swincludedir)/osislatex.h
 
 pkginclude_HEADERS += $(swincludedir)/papyriplain.h
 pkginclude_HEADERS += $(swincludedir)/rawcom.h
@@ -133,13 +131,11 @@ pkginclude_HEADERS += $(swincludedir)/thmlscripref.h
 pkginclude_HEADERS += $(swincludedir)/thmlstrongs.h
 pkginclude_HEADERS += $(swincludedir)/thmlvariants.h
 pkginclude_HEADERS += $(swincludedir)/thmlwordjs.h
-pkginclude_HEADERS += $(swincludedir)/thmllatex.h
 
 pkginclude_HEADERS += $(swincludedir)/teiplain.h
 pkginclude_HEADERS += $(swincludedir)/teirtf.h
 pkginclude_HEADERS += $(swincludedir)/teixhtml.h
 pkginclude_HEADERS += $(swincludedir)/teihtmlhref.h
-pkginclude_HEADERS += $(swincludedir)/teilatex.h
 
 pkginclude_HEADERS += $(swincludedir)/treekey.h
 pkginclude_HEADERS += $(swincludedir)/treekeyidx.h
@@ -157,7 +153,6 @@ pkginclude_HEADERS += $(swincludedir)/utf8html.h
 pkginclude_HEADERS += $(swincludedir)/utf8latin1.h
 pkginclude_HEADERS += $(swincludedir)/utf8nfc.h
 pkginclude_HEADERS += $(swincludedir)/utf8nfkd.h
-pkginclude_HEADERS += $(swincludedir)/utf8scsu.h
 pkginclude_HEADERS += $(swincludedir)/utf8transliterator.h
 pkginclude_HEADERS += $(swincludedir)/utf8utf16.h
 pkginclude_HEADERS += $(swincludedir)/utilstr.h
@@ -166,16 +161,11 @@ pkginclude_HEADERS += $(swincludedir)/utilxml.h
 pkginclude_HEADERS += $(swincludedir)/versekey.h
 pkginclude_HEADERS += $(swincludedir)/versetreekey.h
 pkginclude_HEADERS += $(swincludedir)/zcom.h
-pkginclude_HEADERS += $(swincludedir)/zcom4.h
 pkginclude_HEADERS += $(swincludedir)/zipcomprs.h
-pkginclude_HEADERS += $(swincludedir)/bz2comprs.h
-pkginclude_HEADERS += $(swincludedir)/xzcomprs.h
 pkginclude_HEADERS += $(swincludedir)/zld.h
 pkginclude_HEADERS += $(swincludedir)/zstr.h
 pkginclude_HEADERS += $(swincludedir)/ztext.h
-pkginclude_HEADERS += $(swincludedir)/ztext4.h
 pkginclude_HEADERS += $(swincludedir)/zverse.h
-pkginclude_HEADERS += $(swincludedir)/zverse4.h
 
 pkginclude_HEADERS += $(swincludedir)/canon_kjva.h
 pkginclude_HEADERS += $(swincludedir)/canon_leningrad.h
