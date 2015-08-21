@@ -28,17 +28,11 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := libswordcore
 LOCAL_C_INCLUDES := ../sword/include ../sword/include/internal/regex
 LOCAL_CFLAGS	+= -D__unix__ \
-		   -fvisibility=hidden \
 		   -DSTDC_HEADERS \
 	 	   -Dunix \
 		   -D_FTPLIB_NO_COMPAT \
 		   -DANDROID \
-		   -DEXCLUDEBZIP2 \
-		   -DEXCLUDEXZ \
 		   -DOS_ANDROID
-
-#LOCAL_CFLAGS	+= -g
-
 LOCAL_SRC_FILES := ../../../src/modules/comments/zcom/zcom.cpp \
 ../../../src/modules/comments/rawfiles/rawfiles.cpp \
 ../../../src/modules/comments/rawcom4/rawcom4.cpp \
@@ -60,6 +54,8 @@ LOCAL_SRC_FILES := ../../../src/modules/comments/zcom/zcom.cpp \
 ../../../src/modules/common/rawstr4.cpp \
 ../../../src/modules/common/lzsscomprs.cpp \
 ../../../src/modules/common/zipcomprs.cpp \
+../../../src/modules/common/bz2comprs.cpp \
+../../../src/modules/common/xzcomprs.cpp \
 ../../../src/modules/common/rawverse4.cpp \
 ../../../src/modules/common/swcipher.cpp \
 ../../../src/modules/common/swcomprs.cpp \
@@ -146,10 +142,6 @@ LOCAL_SRC_FILES := ../../../src/modules/comments/zcom/zcom.cpp \
 ../../../src/modules/filters/teiplain.cpp \
 ../../../src/modules/filters/swbasicfilter.cpp \
 ../../../src/modules/filters/scsuutf8.cpp \
-../../../src/modules/filters/gbflatex.cpp \
-../../../src/modules/filters/thmllatex.cpp \
-../../../src/modules/filters/teilatex.cpp \
-../../../src/modules/filters/osislatex.cpp \
 ../../../src/mgr/stringmgr.cpp \
 ../../../src/mgr/swmgr.cpp \
 ../../../src/mgr/swsearchable.cpp \
@@ -186,15 +178,6 @@ LOCAL_SRC_FILES := ../../../src/modules/comments/zcom/zcom.cpp \
 ../../../src/frontend/swlog.cpp \
 ../../../src/utilfuns/zlib/untgz.c
 
-# add BibleSync 
-LOCAL_C_INCLUDES += ../biblesync/include
-LOCAL_SRC_FILES += \
-	../../../../biblesync/src/biblesync.cc \
-	../../../../biblesync/src/ifaddrs.c
-	
-
-#../../../src/modules/common/bz2comprs.cpp \
-#../../../src/modules/common/xzcomprs.cpp \
 #../../../../../sword/src/mgr/curlftpt.cpp \
 #../../../../../sword/src/mgr/curlhttpt.cpp \
 #../../../../../sword/src/utilfuns/win32/dirent.cpp \
@@ -211,10 +194,6 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE    := libsword
 LOCAL_C_INCLUDES := ../sword/include ../sword/include/internal/regex
-
-# add BibleSync stuff
-LOCAL_C_INCLUDES += ../biblesync/include
-
 LOCAL_CFLAGS	+= -D__unix__ \
 		   -Dunix \
 		   -D_FTPLIB_NO_COMPAT \

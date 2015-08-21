@@ -18,14 +18,17 @@
 #import "SwordVerseKey.h"
 #import "SwordBible.h"
 #import "SwordCommentary.h"
+#import "SwordDictionary.h"
+#import "SwordBook.h"
+#import "SwordFilter.h"
 
 @interface SwordModule ()
 
-@property (strong, readwrite) NSString *name;
-@property (strong, readwrite) NSString *typeString;
-@property (strong, readwrite) NSString *descr;
-@property (strong, readwrite) NSString *lang;
-@property(readwrite, strong) NSMutableDictionary *configEntries;
+@property (retain, readwrite) NSString *name;
+@property (retain, readwrite) NSString *typeString;
+@property (retain, readwrite) NSString *descr;
+@property (retain, readwrite) NSString *lang;
+@property(readwrite, retain) NSMutableDictionary *configEntries;
 
 - (void)mainInit;
 
@@ -46,25 +49,25 @@
 
 
 + (id)moduleForSWModule:(sword::SWModule *)aModule {
-    return [[SwordModule alloc] initWithSWModule:aModule];
+    return [[[SwordModule alloc] initWithSWModule:aModule] autorelease];
 }
 
 + (id)moduleForSWModule:(sword::SWModule *)aModule swordManager:(SwordManager *)aManager {
-    return [[SwordModule alloc] initWithSWModule:aModule swordManager:aManager];
+    return [[[SwordModule alloc] initWithSWModule:aModule swordManager:aManager] autorelease];
 }
 
 + (id)moduleForType:(ModuleType)aType swModule:(sword::SWModule *)swModule swordManager:(SwordManager *)aManager {
     SwordModule *sm;
     if(aType == Bible) {
-        sm = [[SwordBible alloc] initWithSWModule:swModule swordManager:aManager];
+        sm = [[[SwordBible alloc] initWithSWModule:swModule swordManager:aManager] autorelease];
     } else if(aType == Commentary) {
-        sm = [[SwordCommentary alloc] initWithSWModule:swModule swordManager:aManager];
+        sm = [[[SwordCommentary alloc] initWithSWModule:swModule swordManager:aManager] autorelease];
     } else if(aType == Dictionary) {
-        sm = [[SwordDictionary alloc] initWithSWModule:swModule swordManager:aManager];
+        sm = [[[SwordDictionary alloc] initWithSWModule:swModule swordManager:aManager] autorelease];
     } else if(aType == Genbook) {
-        sm = [[SwordBook alloc] initWithSWModule:swModule swordManager:aManager];
+        sm = [[[SwordBook alloc] initWithSWModule:swModule swordManager:aManager] autorelease];
     } else {
-        sm = [[SwordModule alloc] initWithSWModule:swModule swordManager:aManager];
+        sm = [[[SwordModule alloc] initWithSWModule:swModule swordManager:aManager] autorelease];
     }
     
     return sm;
@@ -126,8 +129,8 @@
     self.lang = [self retrieveLang];
 
     self.type = [SwordModule moduleTypeForModuleTypeString:self.typeString];
-    self.moduleLock = [[NSRecursiveLock alloc] init];
-    self.indexLock = [[NSLock alloc] init];
+    self.moduleLock = [[[NSRecursiveLock alloc] init] autorelease];
+    self.indexLock = [[[NSLock alloc] init] autorelease];
     self.configEntries = [NSMutableDictionary dictionary];
 }
 
@@ -159,16 +162,31 @@
     return self;
 }
 
+- (void)finalize {    
+	[super finalize];
+}
 
+- (void)dealloc {
+    [self setConfigEntries:nil];
+    [self setSwManager:nil];
+    [self setModuleLock:nil];
+    [self setIndexLock:nil];
+    [self setName:nil];
+    [self setDescr:nil];
+    [self setTypeString:nil];
+    [self setLang:nil];
+
+    [super dealloc];
+}
 
 #pragma mark - Filters
 
 - (void)addRenderFilter:(SwordFilter *)aFilter {
-    swModule->addRenderFilter([aFilter swFilter]);
+    swModule->AddRenderFilter([aFilter swFilter]);
 }
 
 - (void)addStripFilter:(SwordFilter *)aFilter {
-    swModule->addStripFilter([aFilter swFilter]);
+    swModule->AddStripFilter([aFilter swFilter]);
 }
 
 #pragma mark - Module access semaphores
@@ -184,51 +202,51 @@
 #pragma mark - Conf entries
 
 - (NSAttributedString *)fullAboutText {
-    return [[NSAttributedString alloc] initWithString:@""];
+    return [[[NSAttributedString alloc] initWithString:@""] autorelease];
 }
 
 - (NSInteger)error {
-    return swModule->popError();
+    return swModule->Error();
 }
 
 - (NSString *)retrieveName {
-    NSString *str = [NSString stringWithCString:swModule->getName() encoding:NSUTF8StringEncoding];
+    NSString *str = [NSString stringWithCString:swModule->Name() encoding:NSUTF8StringEncoding];
     if(!str) {
-        str = [NSString stringWithCString:swModule->getName() encoding:NSISOLatin1StringEncoding];
+        str = [NSString stringWithCString:swModule->Name() encoding:NSISOLatin1StringEncoding];
     }
     return str;
 }
 
 - (NSString *)retrieveDescr {
-    NSString *str = [NSString stringWithCString:swModule->getDescription() encoding:NSUTF8StringEncoding];
+    NSString *str = [NSString stringWithCString:swModule->Description() encoding:NSUTF8StringEncoding];
     if(!str) {
-        str = [NSString stringWithCString:swModule->getDescription() encoding:NSISOLatin1StringEncoding];
+        str = [NSString stringWithCString:swModule->Description() encoding:NSISOLatin1StringEncoding];
     }
     return str;
 }
 
 - (NSString *)retrieveLang {
-    NSString *str = [NSString stringWithCString:swModule->getLanguage() encoding:NSUTF8StringEncoding];
+    NSString *str = [NSString stringWithCString:swModule->Lang() encoding:NSUTF8StringEncoding];
     if(!str) {
-        str = [NSString stringWithCString:swModule->getLanguage() encoding:NSISOLatin1StringEncoding];
+        str = [NSString stringWithCString:swModule->Lang() encoding:NSISOLatin1StringEncoding];
     }
     return str;
 }
 
 - (NSString *)retrieveType {
-    NSString *str = [NSString stringWithCString:swModule->getType() encoding:NSUTF8StringEncoding];
+    NSString *str = [NSString stringWithCString:swModule->Type() encoding:NSUTF8StringEncoding];
     if(!str) {
-        str = [NSString stringWithCString:swModule->getType() encoding:NSISOLatin1StringEncoding];
+        str = [NSString stringWithCString:swModule->Type() encoding:NSISOLatin1StringEncoding];
     }
     return str;
 }
 
 - (NSString *)categoryString {
-    NSString *cat = configEntries[SWMOD_CONFENTRY_CATEGORY];
+    NSString *cat = [configEntries objectForKey:SWMOD_CONFENTRY_CATEGORY];
     if(cat == nil) {
         cat = [self configFileEntryForConfigKey:SWMOD_CONFENTRY_CATEGORY];
         if(cat != nil) {
-            configEntries[SWMOD_CONFENTRY_CATEGORY] = cat;
+            [configEntries setObject:cat forKey:SWMOD_CONFENTRY_CATEGORY];
         }
     }
     
@@ -243,11 +261,11 @@
 }
 
 - (NSString *)cipherKey {
-    NSString *cipherKey = configEntries[SWMOD_CONFENTRY_CIPHERKEY];
+    NSString *cipherKey = [configEntries objectForKey:SWMOD_CONFENTRY_CIPHERKEY];
     if(cipherKey == nil) {
         cipherKey = [self configFileEntryForConfigKey:SWMOD_CONFENTRY_CIPHERKEY];
         if(cipherKey != nil) {
-            configEntries[SWMOD_CONFENTRY_CIPHERKEY] = cipherKey;
+            [configEntries setObject:cipherKey forKey:SWMOD_CONFENTRY_CIPHERKEY];
         }
     }
     
@@ -255,11 +273,11 @@
 }
 
 - (NSString *)version {
-    NSString *version = configEntries[SWMOD_CONFENTRY_VERSION];
+    NSString *version = [configEntries objectForKey:SWMOD_CONFENTRY_VERSION];
     if(version == nil) {
         version = [self configFileEntryForConfigKey:SWMOD_CONFENTRY_VERSION];
         if(version != nil) {
-            configEntries[SWMOD_CONFENTRY_VERSION] = version;
+            [configEntries setObject:version forKey:SWMOD_CONFENTRY_VERSION];
         }
     }
     
@@ -267,11 +285,11 @@
 }
 
 - (NSString *)minVersion {
-    NSString *minVersion = configEntries[SWMOD_CONFENTRY_MINVERSION];
+    NSString *minVersion = [configEntries objectForKey:SWMOD_CONFENTRY_MINVERSION];
     if(minVersion == nil) {
         minVersion = [self configFileEntryForConfigKey:SWMOD_CONFENTRY_MINVERSION];
         if(minVersion != nil) {
-            configEntries[SWMOD_CONFENTRY_MINVERSION] = minVersion;
+            [configEntries setObject:minVersion forKey:SWMOD_CONFENTRY_MINVERSION];
         }
     }
     
@@ -280,7 +298,7 @@
 
 /** this might be RTF string  but the return value will be converted to UTF8 */
 - (NSString *)aboutText {
-    NSMutableString *aboutText = configEntries[SWMOD_CONFENTRY_ABOUT];
+    NSMutableString *aboutText = [configEntries objectForKey:SWMOD_CONFENTRY_ABOUT];
     if(aboutText == nil) {
         aboutText = [NSMutableString stringWithString:[self configFileEntryForConfigKey:SWMOD_CONFENTRY_ABOUT]];
         if(aboutText != nil) {
@@ -293,7 +311,7 @@
 			[aboutText replaceOccurrencesOfString:@"\\pard" withString:@"" options:0 range:NSMakeRange(0, [aboutText length])];
 			[aboutText replaceOccurrencesOfString:@"\\par" withString:@"\n" options:0 range:NSMakeRange(0, [aboutText length])];
             
-			NSMutableString *retStr = [@"" mutableCopy];
+			NSMutableString *retStr = [[@"" mutableCopy] autorelease];
 			for(NSUInteger i=0; i<[aboutText length]; i++) {
 				unichar c = [aboutText characterAtIndex:i];
                 
@@ -303,7 +321,7 @@
 						//we have an unicode character!
 						@try {
 							NSInteger unicodeChar = 0;
-							NSMutableString *unicodeCharString = [@"" mutableCopy];
+							NSMutableString *unicodeCharString = [[@"" mutableCopy] autorelease];
 							int j = 0;
 							BOOL negative = NO;
 							if ([aboutText characterAtIndex:(i+2)] == '-') {
@@ -336,7 +354,7 @@
         } else {
             aboutText = [NSMutableString string];
         }
-        configEntries[SWMOD_CONFENTRY_ABOUT] = aboutText;
+        [configEntries setObject:aboutText forKey:SWMOD_CONFENTRY_ABOUT];
     }
     
     return aboutText;    
@@ -349,11 +367,11 @@
 
 - (BOOL)isEditable {
     BOOL ret = NO;
-    NSString *editable = configEntries[SWMOD_CONFENTRY_EDITABLE];
+    NSString *editable = [configEntries objectForKey:SWMOD_CONFENTRY_EDITABLE];
     if(editable == nil) {
         editable = [self configFileEntryForConfigKey:SWMOD_CONFENTRY_EDITABLE];
         if(editable != nil) {
-            configEntries[SWMOD_CONFENTRY_EDITABLE] = editable;
+            [configEntries setObject:editable forKey:SWMOD_CONFENTRY_EDITABLE];
         }
     }
     
@@ -368,11 +386,11 @@
 
 - (BOOL)isRTL {
     BOOL ret = NO;
-    NSString *direction = configEntries[SWMOD_CONFENTRY_DIRECTION];
+    NSString *direction = [configEntries objectForKey:SWMOD_CONFENTRY_DIRECTION];
     if(direction == nil) {
         direction = [self configFileEntryForConfigKey:SWMOD_CONFENTRY_DIRECTION];
         if(direction != nil) {
-            configEntries[SWMOD_CONFENTRY_DIRECTION] = direction;
+            [configEntries setObject:direction forKey:SWMOD_CONFENTRY_DIRECTION];
         }
     }
     
@@ -405,7 +423,7 @@
     if(key != nil) {
         // check user defaults, that's where we store the entered keys
         NSDictionary *cipherKeys = [[NSUserDefaults standardUserDefaults] objectForKey:DefaultsModuleCipherKeysKey];
-        if([key length] == 0 && ![[cipherKeys allKeys] containsObject:[self name]]) {
+        if([key length] == 0 && [[cipherKeys allKeys] containsObject:[self name]] == NO) {
             locked = YES;
         }
     }
@@ -460,7 +478,7 @@
     
     NSMutableDictionary	*cipherKeys = [NSMutableDictionary dictionaryWithDictionary:
                                        [[NSUserDefaults standardUserDefaults] objectForKey:DefaultsModuleCipherKeysKey]];
-    cipherKeys[[self name]] = unlockKey;
+    [cipherKeys setObject:unlockKey forKey:[self name]];
     [[NSUserDefaults standardUserDefaults] setObject:cipherKeys forKey:DefaultsModuleCipherKeysKey];
     
 	[swManager setCipherKey:unlockKey forModuleNamed:[self name]];
@@ -483,12 +501,11 @@
 }
 
 - (void)setSwordKey:(SwordKey *)aKey {
-    swModule->getKey()->setPersist(true);
     swModule->setKey([aKey swKey]);
 }
 
 - (SwordKey *)createKey {
-    sword::SWKey *sk = swModule->createKey();
+    sword::SWKey *sk = swModule->CreateKey();
     SwordKey *newKey = [SwordKey swordKeyWithSWKey:sk makeCopy:YES];
     delete sk;
     
@@ -512,25 +529,25 @@
 - (id)attributeValueForParsedLinkData:(NSDictionary *)data withTextRenderType:(TextPullType)textType {
     id ret = nil;
     
-    NSString *passage = data[ATTRTYPE_PASSAGE];
+    NSString *passage = [data objectForKey:ATTRTYPE_PASSAGE];
     if(passage) {
         passage = [[passage stringByReplacingOccurrencesOfString:@"+" withString:@" "] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     } 
-    NSString *attrType = data[ATTRTYPE_TYPE];
+    NSString *attrType = [data objectForKey:ATTRTYPE_TYPE];
     if([attrType isEqualToString:@"n"]) {
         NSString *footnoteText = [self entryAttributeValueFootnoteOfType:attrType 
-                                                              indexValue:data[ATTRTYPE_VALUE]
+                                                              indexValue:[data objectForKey:ATTRTYPE_VALUE] 
                                                                   forKey:[SwordKey swordKeyWithRef:passage]];
         ret = footnoteText;
     } else if([attrType isEqualToString:@"x"] || [attrType isEqualToString:@"scriptRef"] || [attrType isEqualToString:@"scripRef"]) {
         NSString *key = @"";
         if([attrType isEqualToString:@"x"]) {
             key = [self entryAttributeValueFootnoteOfType:attrType
-                                               indexValue:data[ATTRTYPE_VALUE]
+                                               indexValue:[data objectForKey:ATTRTYPE_VALUE] 
                                                    forKey:[SwordKey swordKeyWithRef:passage]];            
         } else {
-            key = [[data[ATTRTYPE_VALUE] stringByReplacingOccurrencesOfString:@"+"
-                                                                   withString:@" "] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+            key = [[[data objectForKey:ATTRTYPE_VALUE] stringByReplacingOccurrencesOfString:@"+" 
+                                                                                 withString:@" "] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];            
         }
         if(textType == TextTypeRendered) {
             ret = [self renderedTextEntriesForRef:key];
@@ -543,7 +560,7 @@
 }
 
 - (void)setProcessEntryAttributes:(BOOL)flag {
-    swModule->setProcessEntryAttributes(flag);
+    swModule->processEntryAttributes(flag);
 }
 
 - (BOOL)processEntryAttributes {
@@ -597,7 +614,7 @@
 - (NSString *)entryAttributeValuePreverseForKey:(SwordKey *)aKey {
     [moduleLock lock];
     [self setSwordKey:aKey];
-    swModule->renderText(); // force processing of key
+    swModule->RenderText(); // force processing of key
     NSString *value = [self entryAttributeValuePreverse];
     [moduleLock unlock];
     return value;
@@ -606,7 +623,7 @@
 - (NSString *)entryAttributeValueFootnoteOfType:(NSString *)fnType indexValue:(NSString *)index forKey:(SwordKey *)aKey {
     [moduleLock lock];
     [self setSwordKey:aKey];
-    swModule->renderText(); // force processing of key
+    swModule->RenderText(); // force processing of key
     NSString *value = [self entryAttributeValueFootnoteOfType:fnType indexValue:index];
     [moduleLock unlock];
     return value;
@@ -621,36 +638,36 @@
 
 - (NSString *)renderedText {
     NSString *ret = @"";
-    ret = [NSString stringWithUTF8String:swModule->renderText()];
+    ret = [NSString stringWithUTF8String:swModule->RenderText()];
     if(!ret) {
-        ret = [NSString stringWithCString:swModule->renderText() encoding:NSISOLatin1StringEncoding];
+        ret = [NSString stringWithCString:swModule->RenderText() encoding:NSISOLatin1StringEncoding];
     }
     return ret;
 }
 
 - (NSString *)renderedTextFromString:(NSString *)aString {
     NSString *ret = @"";
-    ret = [NSString stringWithUTF8String:swModule->renderText([aString UTF8String])];
+    ret = [NSString stringWithUTF8String:swModule->RenderText([aString UTF8String])];
     if(!ret) {
-        ret = [NSString stringWithCString:swModule->renderText([aString UTF8String]) encoding:NSISOLatin1StringEncoding];
+        ret = [NSString stringWithCString:swModule->RenderText([aString UTF8String]) encoding:NSISOLatin1StringEncoding];
     }
     return ret;
 }
 
 - (NSString *)strippedText {
     NSString *ret = @"";
-    ret = [NSString stringWithUTF8String:swModule->stripText()];
+    ret = [NSString stringWithUTF8String:swModule->StripText()];
     if(!ret) {
-        ret = [NSString stringWithCString:swModule->stripText() encoding:NSISOLatin1StringEncoding];
+        ret = [NSString stringWithCString:swModule->StripText() encoding:NSISOLatin1StringEncoding];
     }
     return ret;
 }
 
 - (NSString *)strippedTextFromString:(NSString *)aString {
     NSString *ret = @"";
-    ret = [NSString stringWithUTF8String:swModule->renderText([aString UTF8String])];
+    ret = [NSString stringWithUTF8String:swModule->RenderText([aString UTF8String])];
     if(!ret) {
-        ret = [NSString stringWithCString:swModule->renderText([aString UTF8String]) encoding:NSISOLatin1StringEncoding];
+        ret = [NSString stringWithCString:swModule->RenderText([aString UTF8String]) encoding:NSISOLatin1StringEncoding];
     }
     return ret;
 }
@@ -699,7 +716,7 @@
     SwordModuleTextEntry *entry = [self textEntryForKey:[SwordKey swordKeyWithRef:aReference] 
                                                textType:textType];
     if(entry) {
-        ret = @[entry];
+        ret = [NSArray arrayWithObject:entry];
     }
     
     return ret;    

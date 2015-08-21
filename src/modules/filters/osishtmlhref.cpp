@@ -201,9 +201,9 @@ bool OSISHTMLHREF::handleToken(SWBuf &buf, const char *token, BasicFilterUserDat
 					
 					outText("<ruby><rb>", buf, u);
 					outText(lastText, buf, u);
-					outText("</rb><rp>(</rp><rt>", buf, u);
 					val = strchr(attrib, ':');
 					val = (val) ? (val + 1) : attrib;
+					outText("</rb><rp>(</rp><rt>", buf, u);
 					outText(val, buf, u);
 					outText("</rt><rp>)</rp></ruby>", buf, u);
 				}
@@ -267,7 +267,7 @@ bool OSISHTMLHREF::handleToken(SWBuf &buf, const char *token, BasicFilterUserDat
 			if (tag.isEndTag()) {
 				u->suspendTextPassThru = (--u->suspendLevel);
 				u->inXRefNote = false;
-				u->lastSuspendSegment = ""; // fix/work-around for nasb divineName in note bug
+				u->lastSuspendSegment = ""; // fix/work-around for nasb devineName in note bug
 			}
 		}
 

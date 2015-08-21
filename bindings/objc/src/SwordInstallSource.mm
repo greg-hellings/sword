@@ -12,8 +12,6 @@
 
 @interface SwordInstallSource ()
 
-@property (nonatomic) BOOL deleteSwInstallSource;
-
 @end
 
 @implementation SwordInstallSource
@@ -22,8 +20,16 @@
 - (id)init {
     self = [super init];
     if(self) {
+        temporarySource = NO;
+
+        // at first we have no sword manager
+        [self setSwordManager:nil];
+        
+        // init InstallMgr
         swInstallSource = new sword::InstallSource("", "");
-        self.deleteSwInstallSource = YES;
+        if(swInstallSource == nil) {
+            ALog(@"Could not init sword install source!");
+        }
     }
     
     return self;
@@ -32,7 +38,8 @@
 - (id)initWithType:(NSString *)aType {
     self = [self init];
     if(self) {
-        swInstallSource->type = [aType UTF8String];
+        // set type
+        swInstallSource->type = [aType cStringUsingEncoding:NSUTF8StringEncoding];
     }
     
     return self;
@@ -42,54 +49,72 @@
 - (id)initWithSource:(sword::InstallSource *)is {
     self = [super init];
     if(self) {
+        temporarySource = YES;
+        
+        // at first we have no sword manager
+        [self setSwordManager:nil];
+        
         swInstallSource = is;
-        self.deleteSwInstallSource = NO;
     }
     
     return self;
 }
 
-- (void)dealloc {
-    if(swInstallSource != NULL && self.deleteSwInstallSource) {
-        ALog(@"Deleting swInstallSource");
-        delete swInstallSource;
+- (void)finalize {
+    if(temporarySource == NO) {
+        //LogL(LOG_DEBUG, @"[SwordInstallSource -finalize] deleting swInstallSource");
+        //delete swInstallSource;
     }
+    
+    [super finalize];
 }
 
+- (void)dealloc {
+    [swordManager release];
+    [super dealloc];
+}
+
+- (void)setSwordManager:(SwordManager *)swManager {
+    [swManager retain];
+    [swordManager release];
+    swordManager = swManager;
+}
+
+// accessors
 - (NSString *)caption {
     const char *str = swInstallSource->caption;
-    return [[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding];
+    return [[[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding] autorelease];
 }
 
 - (void)setCaption:(NSString *)aCaption {
-    swInstallSource->caption = [aCaption UTF8String];
+    swInstallSource->caption = [aCaption cStringUsingEncoding:NSUTF8StringEncoding];
 }
 
 - (NSString *)type {
     const char *str = swInstallSource->type;
-    return [[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding];
+    return [[[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding] autorelease];
 }
 
 - (void)setType:(NSString *)aType {
-    swInstallSource->type = [aType UTF8String];
+    swInstallSource->type = [aType cStringUsingEncoding:NSUTF8StringEncoding];
 }
 
 - (NSString *)source {
     const char *str = swInstallSource->source;
-    return [[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding];
+    return [[[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding] autorelease];
 }
 
 - (void)setSource:(NSString *)aSource {
-    swInstallSource->source = [aSource UTF8String];
+    swInstallSource->source = [aSource cStringUsingEncoding:NSUTF8StringEncoding];
 }
 
 - (NSString *)directory {
     const char *str = swInstallSource->directory;
-    return [[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding];
+    return [[[NSString alloc] initWithCString:str encoding:NSUTF8StringEncoding] autorelease];
 }
 
 - (void)setDirectory:(NSString *)aDir {
-    swInstallSource->directory = [aDir UTF8String];
+    swInstallSource->directory = [aDir cStringUsingEncoding:NSUTF8StringEncoding];
 }
 
 - (BOOL)isLocalSource {
@@ -142,23 +167,26 @@
 
 // get associated SwordManager
 - (SwordManager *)swordManager {
-    // create SwordManager from the SWMgr of this source
-    sword::SWMgr *mgr;
-    if([self isLocalSource]) {
-        // create SwordManager from new SWMgr of path
-        mgr = new sword::SWMgr([[self directory] UTF8String], true, NULL, false, false);
-    } else {
+
+    if(swordManager == nil) {
         // create SwordManager from the SWMgr of this source
-        mgr = swInstallSource->getMgr();
+        sword::SWMgr *mgr;
+        if([[self source] isEqualToString:@"localhost"]) {
+            // create SwordManager from new SWMgr of path
+            mgr = new sword::SWMgr([[self directory] UTF8String], true, NULL, false, false);
+        } else {
+            // create SwordManager from the SWMgr of this source
+            mgr = swInstallSource->getMgr();    
+        }
+        
+        if(mgr == nil) {
+            ALog(@"Have a nil SWMgr!");
+        } else {
+            swordManager = [[SwordManager alloc] initWithSWMgr:mgr];    
+        }
     }
-
-    if(mgr == nil) {
-        ALog(@"Have a nil SWMgr!");
-        return nil;
-
-    } else {
-        return [[SwordManager alloc] initWithSWMgr:mgr];
-    }
+    
+    return swordManager;
 }
 
 /** low level API */

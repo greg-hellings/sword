@@ -49,7 +49,6 @@ protected:
 public:
 	TEIXHTML();
 	void setRenderNoteNumbers(bool val = true) { renderNoteNumbers = val; }
-	virtual const char *getHeader() const;
 };
 
 SWORD_NAMESPACE_END

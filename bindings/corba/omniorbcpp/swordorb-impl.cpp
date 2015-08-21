@@ -243,7 +243,7 @@ swordorb::StringList* swordorb_SWModule_i::getKeyChildren(){
 
 	sword::VerseKey *vkey = SWDYNAMIC_CAST(VerseKey, key);
 	if (vkey) {
-		retVal->length(10);
+		retVal->length(8);
 		SWBuf num;
 		num.appendFormatted("%d", vkey->getTestament());
 		(*retVal)[0] = CORBA::string_dup(num.c_str());
@@ -264,8 +264,6 @@ swordorb::StringList* swordorb_SWModule_i::getKeyChildren(){
 		(*retVal)[5] = CORBA::string_dup(num.c_str());
 		(*retVal)[6] = CORBA::string_dup(vkey->getBookName());
 		(*retVal)[7] = CORBA::string_dup(vkey->getOSISRef());
-		(*retVal)[8] = CORBA::string_dup(vkey->getShortText());
-		(*retVal)[9] = CORBA::string_dup(vkey->getBookAbbrev());
 	}
 	else {
 		TreeKeyIdx *tkey = SWDYNAMIC_CAST(TreeKeyIdx, key);

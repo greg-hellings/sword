@@ -47,6 +47,7 @@ class SWFilter;
 #define SEARCHFLAG_MATCHWHOLEENTRY 4096
 
 #define SWMODULE_OPERATORS \
+	SWDEPRECATED operator const char *() { static SWBuf unsafeTmp = renderText(); return unsafeTmp.c_str(); } \
 	operator SWBuf() { return renderText(); } \
 	operator SWKey &() { return *getKey(); } \
 	operator SWKey *() { return getKey(); } \
@@ -56,8 +57,7 @@ class SWFilter;
 	SWModule &operator +=(int steps) { increment(steps); return *this; } \
 	SWModule &operator ++(int) { return *this += 1; } \
 	SWModule &operator --(int) { return *this -= 1; } \
-	SWModule &operator =(SW_POSITION p) { setPosition(p); return *this; } \
-	SWDEPRECATED operator const char *() { static SWBuf unsafeTmp = renderText(); return unsafeTmp.c_str(); }
+	SWModule &operator =(SW_POSITION p) { setPosition(p); return *this; }
 
 
 typedef std::list < SWFilter * >FilterList;
@@ -662,8 +662,7 @@ public:
 	 * @param render for internal use
 	 * @return result buffer
 	 */
-	SWBuf renderText();
-	SWBuf renderText(const char *buf, int len = -1, bool render = true) const;
+	SWBuf renderText(const char *buf = 0, int len = -1, bool render = true);
 	SWDEPRECATED const char *RenderText(const char *buf = 0, int len = -1, bool render = true) { return renderText(buf, len, render); }
 
 	/** Produces any header data which might be useful which is associated with the

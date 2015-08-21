@@ -509,24 +509,23 @@ char FileMgr::isDirectory(const char *path) {
 int FileMgr::copyDir(const char *srcDir, const char *destDir) {
 	DIR *dir;
 	struct dirent *ent;
-	int retVal = 0;
 	if ((dir = opendir(srcDir))) {
 		rewinddir(dir);
-		while ((ent = readdir(dir)) && !retVal) {
+		while ((ent = readdir(dir))) {
 			if ((strcmp(ent->d_name, ".")) && (strcmp(ent->d_name, ".."))) {
 				SWBuf srcPath  = (SWBuf)srcDir  + (SWBuf)"/" + ent->d_name;
 				SWBuf destPath = (SWBuf)destDir + (SWBuf)"/" + ent->d_name;
 				if (!isDirectory(srcPath.c_str())) {
-					retVal = copyFile(srcPath.c_str(), destPath.c_str());
+					copyFile(srcPath.c_str(), destPath.c_str());
 				}
 				else {
-					retVal = copyDir(srcPath.c_str(), destPath.c_str());
+					copyDir(srcPath.c_str(), destPath.c_str());
 				}
 			}
 		}
 		closedir(dir);
 	}
-	return retVal;
+	return 0;
 }
 
 

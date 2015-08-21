@@ -12,7 +12,7 @@
 
 @interface SwordVerseManager ()
 
-@property (strong, readwrite) NSMutableDictionary *booksPerVersification;
+@property (retain, readwrite) NSMutableDictionary *booksPerVersification;
 
 @end
 
@@ -39,7 +39,15 @@
     return self;
 }
 
+- (void)finalize {
+    [super finalize];
+}
 
+- (void)dealloc {
+    [self setBooksPerVersification:nil];
+    
+    [super dealloc];
+}
 
 /** convenience method that returns the books for default scheme (KJV) */
 - (NSArray *)books {
@@ -48,7 +56,7 @@
 
 /** books for a versification scheme */
 - (NSArray *)booksForVersification:(NSString *)verseScheme {
-    NSArray *ret = booksPerVersification[verseScheme];
+    NSArray *ret = [booksPerVersification objectForKey:verseScheme];
     if(ret == nil) {
         // hasn't been initialized yet
         const sword::VersificationMgr::System *system = verseMgr->getVersificationSystem([verseScheme UTF8String]);
@@ -57,13 +65,13 @@
         for(int i = 0;i < bookCount;i++) {
             sword::VersificationMgr::Book *book = (sword::VersificationMgr::Book *)system->getBook(i);
             
-            SwordBibleBook *bb = [[SwordBibleBook alloc] initWithBook:book];
+            SwordBibleBook *bb = [[[SwordBibleBook alloc] initWithBook:book] autorelease];
             [bb setNumber:i+1]; // VerseKey-Book() starts at index 1
             
             // add to array
             [buf addObject:bb];
         }
-        booksPerVersification[verseScheme] = buf;
+        [booksPerVersification setObject:buf forKey:verseScheme];
         ret = buf;
     }
     

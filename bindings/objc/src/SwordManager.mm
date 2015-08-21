@@ -13,170 +13,32 @@
 
 #import <ObjCSword/ObjCSword.h>
 #import "Notifications.h"
+#import "FilterProviderFactory.h"
+#import "DefaultFilterProvider.h"
 
 #include "encfiltmgr.h"
+#import "SwordFilter.h"
 
 using std::string;
 using std::list;
 
-@interface SwordManager ()
-
-@property (strong, readwrite) NSDictionary *modules;
+@interface SwordManager (PrivateAPI)
 
 - (void)refreshModules;
 - (void)addFiltersToModule:(SwordModule *)mod;
 
 @end
 
-
-@implementation SwordManager
-
-# pragma mark - class methods
-
-+ (NSArray *)moduleTypes {
-    return @[SWMOD_TYPES_BIBLES, SWMOD_TYPES_COMMENTARIES, SWMOD_TYPES_DICTIONARIES, SWMOD_TYPES_GENBOOKS];
-}
-
-+ (SwordManager *)managerWithPath:(NSString *)path {
-    SwordManager *manager = [[SwordManager alloc] initWithPath:path];
-    return manager;
-}
-
-+ (SwordManager *)defaultManager {
-    static SwordManager *instance = nil;
-    if(instance == nil) {
-        // use default path
-        instance = [[SwordManager alloc] initWithPath:[[Configuration config] defaultModulePath]];
-    }
-    
-	return instance;
-}
-
-- (id)initWithPath:(NSString *)path {
-
-	if((self = [super init])) {
-        // this is our main swManager
-        self.temporaryManager = NO;
-        
-        self.modulesPath = path;
-
-		self.modules = [NSDictionary dictionary];
-		self.managerLock = (id) [[NSRecursiveLock alloc] init];
-
-        [self reInit];
-        
-        sword::StringList options = swManager->getGlobalOptions();
-        sword::StringList::iterator	it;
-        for(it = options.begin(); it != options.end(); it++) {
-            [self setGlobalOption:[NSString stringWithCString:it->c_str() encoding:NSUTF8StringEncoding] value:SW_OFF];
-        }
-    }	
-	
-	return self;
-}
-
-- (id)initWithSWMgr:(sword::SWMgr *)aSWMgr {
-    self = [super init];
-    if(self) {
-        swManager = aSWMgr;
-        // this is a temporary swManager
-        self.temporaryManager = YES;
-        
-		self.modules = [NSDictionary dictionary];
-        self.managerLock = (id) [[NSRecursiveLock alloc] init];
-        
-		[self refreshModules];
-    }
-    
-    return self;
-}
-
-
-- (void)dealloc {
-    if(!self.temporaryManager) {
-        ALog(@"Deleting SWMgr!");
-        delete swManager;
-    }
-}
-
-- (void)reInit {
-	[self.managerLock lock];
-    if(self.modulesPath && [self.modulesPath length] > 0) {
-        
-        NSFileManager *fm = [NSFileManager defaultManager];
-        if(![fm fileExistsAtPath:self.modulesPath]) {
-            [self createModuleFolderTemplate];
-        }
-
-        // modulePath is the main sw manager
-        swManager = new sword::SWMgr([self.modulesPath UTF8String], true, new sword::EncodingFilterMgr(sword::ENC_UTF8));
-
-        if(!swManager) {
-            ALog(@"Cannot create SWMgr instance for default module path!");
-        } else {
-            NSArray *subDirs = [fm contentsOfDirectoryAtPath:self.modulesPath error:NULL];
-            // for all sub directories add module
-            BOOL directory;
-            NSString *fullSubDir;
-            NSString *subDir;
-            for(subDir in subDirs) {
-                // as long as it's not hidden
-                if(![subDir hasPrefix:@"."] && 
-                   ![subDir isEqualToString:@"InstallMgr"] && 
-                   ![subDir isEqualToString:@"mods.d"] &&
-                   ![subDir isEqualToString:@"modules"]) {
-                    fullSubDir = [self.modulesPath stringByAppendingPathComponent:subDir];
-                    fullSubDir = [fullSubDir stringByStandardizingPath];
-                    
-                    //if its a directory
-                    if([fm fileExistsAtPath:fullSubDir isDirectory:&directory]) {
-                        if(directory) {
-                            DLog(@"Augmenting folder: %@", fullSubDir);
-                            swManager->augmentModules([fullSubDir UTF8String]);
-                            DLog(@"Augmenting folder done");
-                        }
-                    }
-                }
-            }
-            
-            // clear some data
-            [self refreshModules];
-            
-            SendNotifyModulesChanged(NULL);
-        }
-    }
-	[self.managerLock unlock];
-}
-
-- (void)createModuleFolderTemplate {
-    NSFileManager *fm = [NSFileManager defaultManager];
-    [fm createDirectoryAtPath:self.modulesPath withIntermediateDirectories:NO attributes:nil error:NULL];
-    [fm createDirectoryAtPath:[self.modulesPath stringByAppendingPathComponent:@"mods.d"] withIntermediateDirectories:NO attributes:nil error:NULL];
-    [fm createDirectoryAtPath:[self.modulesPath stringByAppendingPathComponent:@"modules"] withIntermediateDirectories:NO attributes:nil error:NULL];
-}
-
-- (void)addModulesPath:(NSString *)path {
-	[self.managerLock lock];
-	if(swManager == nil) {
-		swManager = new sword::SWMgr([path UTF8String], true, new sword::EncodingFilterMgr(sword::ENC_UTF8));
-    } else {
-		swManager->augmentModules([path UTF8String]);
-    }
-	
-	[self refreshModules];
-	[self.managerLock unlock];
-    
-    SendNotifyModulesChanged(NULL);
-}
+@implementation SwordManager (PrivateAPI)
 
 - (void)refreshModules {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-
+    
     // loop over modules
     sword::SWModule *mod;
 	for(sword::ModMap::iterator it = swManager->Modules.begin(); it != swManager->Modules.end(); it++) {
 		mod = it->second;
-
+        
         if(mod) {
             // temporary instance
             SwordModule *swMod = [SwordModule moduleForSWModule:mod];
@@ -184,12 +46,12 @@ using std::list;
 
             ModuleType aType = [SwordModule moduleTypeForModuleTypeString:type];
             SwordModule *sm = [SwordModule moduleForType:aType swModule:mod swordManager:self];
-            dict[[[sm name] lowercaseString]] = sm;
+            [dict setObject:sm forKey:[[sm name] lowercaseString]];
 
             [self addFiltersToModule:sm];
         }
 	}
-
+    
     // set modules
     self.modules = dict;
 }
@@ -199,7 +61,7 @@ using std::list;
 
     id<FilterProvider> filterProvider = [[FilterProviderFactory providerFactory] get];
 
-    switch([mod swModule]->getMarkup()) {
+    switch([mod swModule]->Markup()) {
         case sword::FMT_GBF:
             if(!gbfFilter) {
                 gbfFilter = [filterProvider newGbfRenderFilter];
@@ -243,16 +105,176 @@ using std::list;
         case sword::FMT_PLAIN:
         default:
             if(!plainFilter) {
-                plainFilter = [filterProvider newOsisPlainFilter];
+                plainFilter = [filterProvider newHtmlPlainFilter];
             }
             [mod addRenderFilter:plainFilter];
             break;
+    }    
+}
+
+@end
+
+@implementation SwordManager
+
+@synthesize modules;
+@synthesize modulesPath;
+@synthesize managerLock;
+@synthesize temporaryManager;
+
+# pragma mark - class methods
+
++ (NSArray *)moduleTypes {
+    return [NSArray arrayWithObjects:
+            SWMOD_TYPES_BIBLES, 
+            SWMOD_TYPES_COMMENTARIES,
+            SWMOD_TYPES_DICTIONARIES,
+            SWMOD_TYPES_GENBOOKS, nil];
+}
+
++ (SwordManager *)managerWithPath:(NSString *)path {
+    SwordManager *manager = [[[SwordManager alloc] initWithPath:path] autorelease];
+    return manager;
+}
+
++ (SwordManager *)defaultManager {
+    static SwordManager *instance = nil;
+    if(instance == nil) {
+        // use default path
+        instance = [[SwordManager alloc] initWithPath:[[Configuration config] defaultModulePath]];
     }
+    
+	return instance;
+}
+
+- (id)initWithPath:(NSString *)path {
+
+	if((self = [super init])) {
+        // this is our main swManager
+        temporaryManager = NO;
+        
+        self.modulesPath = path;
+
+		self.modules = [NSDictionary dictionary];
+		self.managerLock = (NSLock *)[[[NSRecursiveLock alloc] init] autorelease];
+
+        [self reInit];
+        
+        sword::StringList options = swManager->getGlobalOptions();
+        sword::StringList::iterator	it;
+        for(it = options.begin(); it != options.end(); it++) {
+            [self setGlobalOption:[NSString stringWithCString:it->c_str() encoding:NSUTF8StringEncoding] value:SW_OFF];
+        }        
+    }	
+	
+	return self;
+}
+
+- (id)initWithSWMgr:(sword::SWMgr *)aSWMgr {
+    self = [super init];
+    if(self) {
+        swManager = aSWMgr;
+        // this is a temporary swManager
+        temporaryManager = YES;
+        
+		self.modules = [NSDictionary dictionary];
+        self.managerLock = [(NSLock *)[[NSRecursiveLock alloc] init] autorelease];
+        
+		[self refreshModules];
+    }
+    
+    return self;
+}
+
+- (void)finalize {
+    if(!temporaryManager) {
+        delete swManager;
+    }
+    
+	[super finalize];
+}
+
+- (void)dealloc {
+    if(!temporaryManager) {
+        delete swManager;
+    }
+    [self setModules:nil];
+    [self setModulesPath:nil];
+    [self setManagerLock:nil];
+
+    [gbfFilter release];
+    [gbfStripFilter release];
+    [thmlFilter release];
+    [thmlStripFilter release];
+    [osisFilter release];
+    [osisStripFilter release];
+    [teiFilter release];
+    [teiStripFilter release];
+    [plainFilter release];
+    [super dealloc];
+}
+
+- (void)reInit {
+	[managerLock lock];
+    if(modulesPath && [modulesPath length] > 0) {
+        
+        // modulePath is the main sw manager
+        swManager = new sword::SWMgr([modulesPath UTF8String], true, new sword::EncodingFilterMgr(sword::ENC_UTF8));
+
+        if(!swManager) {
+            ALog(@"Cannot create SWMgr instance for default module path!");
+        } else {
+            NSFileManager *fm = [NSFileManager defaultManager];
+            NSArray *subDirs = [fm contentsOfDirectoryAtPath:modulesPath error:NULL];
+            // for all sub directories add module
+            BOOL directory;
+            NSString *fullSubDir;
+            NSString *subDir;
+            for(subDir in subDirs) {
+                // as long as it's not hidden
+                if(![subDir hasPrefix:@"."] && 
+                   ![subDir isEqualToString:@"InstallMgr"] && 
+                   ![subDir isEqualToString:@"mods.d"] &&
+                   ![subDir isEqualToString:@"modules"]) {
+                    fullSubDir = [modulesPath stringByAppendingPathComponent:subDir];
+                    fullSubDir = [fullSubDir stringByStandardizingPath];
+                    
+                    //if its a directory
+                    if([fm fileExistsAtPath:fullSubDir isDirectory:&directory]) {
+                        if(directory) {
+                            DLog(@"Augmenting folder: %@", fullSubDir);
+                            swManager->augmentModules([fullSubDir UTF8String]);
+                            DLog(@"Augmenting folder done");
+                        }
+                    }
+                }
+            }
+            
+            // clear some data
+            [self refreshModules];
+            
+            SendNotifyModulesChanged(NULL);
+        }
+    }
+	[managerLock unlock];    
+}
+
+- (void)addModulesPath:(NSString *)path {
+	[managerLock lock];
+	if(swManager == nil) {
+		swManager = new sword::SWMgr([path UTF8String], true, new sword::EncodingFilterMgr(sword::ENC_UTF8));
+    } else {
+		swManager->augmentModules([path UTF8String]);
+    }
+	
+	[self refreshModules];
+	[managerLock unlock];
+    
+    SendNotifyModulesChanged(NULL);
 }
 
 - (SwordModule *)moduleWithName:(NSString *)name {
     
-	SwordModule	*ret = self.modules[[name lowercaseString]];
+	SwordModule	*ret = [modules objectForKey:[name lowercaseString]];
     if(ret == nil) {
         sword::SWModule *mod = [self getSWModuleWithName:name];
         if(mod == NULL) {
@@ -266,8 +288,8 @@ using std::list;
             ret = [SwordModule moduleForType:aType swModule:mod swordManager:self];
 
             if(ret != nil) {
-                NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:self.modules];
-                dict[[name lowercaseString]] = ret;
+                NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:modules];
+                [dict setObject:ret forKey:[name lowercaseString]];
                 self.modules = dict;                
             }
         }        
@@ -277,17 +299,17 @@ using std::list;
 }
 
 - (void)setCipherKey:(NSString *)key forModuleNamed:(NSString *)name {
-	[self.managerLock lock];
+	[managerLock lock];	
 	swManager->setCipherKey([name UTF8String], [key UTF8String]);
-	[self.managerLock unlock];
+	[managerLock unlock];
 }
 
 #pragma mark - module access
 
 - (void)setGlobalOption:(NSString *)option value:(NSString *)value {
-	[self.managerLock lock];
+	[managerLock lock];
     swManager->setGlobalOption([option UTF8String], [value UTF8String]);
-	[self.managerLock unlock];
+	[managerLock unlock];
 }
 
 - (BOOL)globalOption:(NSString *)option {
@@ -295,10 +317,10 @@ using std::list;
 }
 
 - (NSArray *)listModules {
-    return [self.modules allValues];
+    return [modules allValues];
 }
 - (NSArray *)moduleNames {
-    return [self.modules allKeys];
+    return [modules allKeys];
 }
 
 - (NSArray *)sortedModuleNames {
@@ -307,14 +329,14 @@ using std::list;
 
 - (NSArray *)modulesForFeature:(NSString *)feature {
     NSMutableArray *ret = [NSMutableArray array];
-    for(SwordModule *mod in [self.modules allValues]) {
+    for(SwordModule *mod in [modules allValues]) {
         if([mod hasFeature:feature]) {
             [ret addObject:mod];
         }
     }
 	
     // sort
-    NSArray *sortDescriptors = @[[[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES]];
+    NSArray *sortDescriptors = [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES] autorelease]];
     [ret sortUsingDescriptors:sortDescriptors];
 
 	return [NSArray arrayWithArray:ret];
@@ -322,14 +344,14 @@ using std::list;
 
 - (NSArray *)modulesForType:(ModuleType)type {
     NSMutableArray *ret = [NSMutableArray array];
-    for(SwordModule *mod in [self.modules allValues]) {
+    for(SwordModule *mod in [modules allValues]) {
         if([mod type] == type || type == All) {
             [ret addObject:mod];
         }
     }
     
     // sort
-    NSArray *sortDescriptors = @[[[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES]];
+    NSArray *sortDescriptors = [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES] autorelease]];
     [ret sortUsingDescriptors:sortDescriptors];
     
 	return [NSArray arrayWithArray:ret];
@@ -337,14 +359,14 @@ using std::list;
 
 - (NSArray *)modulesForCategory:(ModuleCategory)cat {
     NSMutableArray *ret = [NSMutableArray array];
-    for(SwordModule *mod in [self.modules allValues]) {
+    for(SwordModule *mod in [modules allValues]) {
         if([mod category] == cat) {
             [ret addObject:mod];
         }
     }
     
     // sort
-    NSArray *sortDescriptors = @[[[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES]];
+    NSArray *sortDescriptors = [NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES] autorelease]];
     [ret sortUsingDescriptors:sortDescriptors];
     
 	return [NSArray arrayWithArray:ret];    
@@ -359,9 +381,9 @@ using std::list;
 - (sword::SWModule *)getSWModuleWithName:(NSString *)moduleName {
 	sword::SWModule *module;
 
-	[self.managerLock lock];
+	[managerLock lock];
 	module = swManager->Modules[[moduleName UTF8String]];	
-	[self.managerLock unlock];
+	[managerLock unlock];
     
 	return module;
 }

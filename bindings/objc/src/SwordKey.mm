@@ -12,19 +12,19 @@
 @implementation SwordKey
 
 + (SwordKey *)swordKey {
-    return [[SwordKey alloc] init];
+    return [[[SwordKey alloc] init] autorelease];
 }
 
 + (SwordKey *)swordKeyWithRef:(NSString *)aRef {
-    return [[SwordKey alloc] initWithRef:aRef];
+    return [[[SwordKey alloc] initWithRef:aRef] autorelease];
 }
 
 + (SwordKey *)swordKeyWithSWKey:(sword::SWKey *)aSk {
-    return [[SwordKey alloc] initWithSWKey:aSk];
+    return [[[SwordKey alloc] initWithSWKey:aSk] autorelease];
 }
 
 + (SwordKey *)swordKeyWithSWKey:(sword::SWKey *)aSk makeCopy:(BOOL)copy {
-    return [[SwordKey alloc] initWithSWKey:aSk makeCopy:copy];    
+    return [[[SwordKey alloc] initWithSWKey:aSk makeCopy:copy] autorelease];    
 }
 
 - (id)init {
@@ -40,9 +40,8 @@
     if(self) {
         if(copy) {
             if(aSk) {
-                sk = aSk->clone();
-                sk->setPersist(true);
-                created = YES;
+                sk = aSk->clone();            
+                created = YES;                
             } else {
                 created = NO;
             }
@@ -50,7 +49,7 @@
             sk = aSk;
             created = NO;
         }
-    }
+    }    
     return self;    
 }
 
@@ -64,12 +63,20 @@
     return self;    
 }
 
+- (void)finalize {
+    if(created) {
+        delete sk;
+    }
+    
+    [super finalize];
+}
 
 - (void)dealloc {
     if(created) {
         delete sk;
     }
     
+    [super dealloc];    
 }
 
 - (SwordKey *)clone {
@@ -79,15 +86,15 @@
 #pragma mark - Methods
 
 - (void)setPersist:(BOOL)flag {
-    sk->setPersist(flag);
+    sk->Persist((int)flag);
 }
 
 - (BOOL)persist {
-    return (BOOL)sk->isPersist();
+    return (BOOL)sk->Persist();
 }
 
 - (int)error {
-    return sk->popError();
+    return sk->Error();
 }
 
 - (void)setPosition:(int)aPosition {

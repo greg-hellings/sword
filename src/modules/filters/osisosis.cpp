@@ -58,28 +58,39 @@ char OSISOSIS::processText(SWBuf &text, const SWKey *key, const SWModule *module
 	char status = SWBasicFilter::processText(text, key, module);
 	VerseKey *vkey = SWDYNAMIC_CAST(VerseKey, key);
 	if (vkey) {
+		SWBuf ref = "";
 		if (vkey->getVerse()) {
-			VerseKey *tmp = (VerseKey *)vkey->clone();
-			*tmp = *vkey;
-			tmp->setAutoNormalize(false);
-			tmp->setIntros(true);
+			ref.appendFormatted("\t\t<verse osisID=\"%s\">", vkey->getOSISRef());
+		}
 
-			*tmp = MAXVERSE;
-			if (*vkey == *tmp) {
-				tmp->setVerse(0);
-//				sprintf(ref, "\t</div>");
-//				pushString(&to, ref);
-				*tmp = MAXCHAPTER;
+		if (ref.length() > 0) {
+
+			text = ref + text;
+
+			if (vkey->getVerse()) {
+				VerseKey *tmp = (VerseKey *)vkey->clone();
+				*tmp = *vkey;
+				tmp->setAutoNormalize(false);
+				tmp->setIntros(true);
+
+				text += "</verse>";
+
 				*tmp = MAXVERSE;
 				if (*vkey == *tmp) {
-					tmp->setChapter(0);
 					tmp->setVerse(0);
 //					sprintf(ref, "\t</div>");
 //					pushString(&to, ref);
+					*tmp = MAXCHAPTER;
+					*tmp = MAXVERSE;
+					if (*vkey == *tmp) {
+						tmp->setChapter(0);
+						tmp->setVerse(0);
+//						sprintf(ref, "\t</div>");
+//						pushString(&to, ref);
+					}
 				}
+                                delete tmp;
 			}
-                        delete tmp;
-		}
 
 //
 //			else if (vkey->Chapter()) {
@@ -87,7 +98,7 @@ char OSISOSIS::processText(SWBuf &text, const SWKey *key, const SWModule *module
 //			}
 //			else sprintf(ref, "\t<div type=\"book\" osisID=\"%s\">", vkey->getOSISRef());
 //
-		
+		}
 	}
 	return status;
 }
@@ -138,12 +149,11 @@ bool OSISOSIS::handleToken(SWBuf &buf, const char *token, BasicFilterUserData *u
 		else if (!strcmp(tag.getName(), "note")) {
 			if (!tag.isEndTag()) {
 				SWBuf type = tag.getAttribute("type");
-				                                                                                                
 				bool strongsMarkup = (type == "x-strongsMarkup" || type == "strongsMarkup");	// the latter is deprecated
 				if (strongsMarkup) {
 					tag.setEmpty(false);	// handle bug in KJV2003 module where some note open tags were <note ... />
 				}
-				
+
 				if (!tag.isEmpty()) {
 					tag.setAttribute("swordFootnote", 0);
 
@@ -152,13 +162,6 @@ bool OSISOSIS::handleToken(SWBuf &buf, const char *token, BasicFilterUserData *u
 					}
 					else u->suspendTextPassThru = true;
 				}
-				
-				if (u->module) {
-                                        XMLTag tag = token; 
-                                        SWBuf swordFootnote = tag.getAttribute("swordFootnote");
-                                        SWBuf footnoteBody = u->module->getEntryAttributes()["Footnote"][swordFootnote]["body"];
-                                        buf.append(u->module->renderText(footnoteBody));
-                                }
 			}
 			if (tag.isEndTag()) {
 				if (u->suspendTextPassThru == false)

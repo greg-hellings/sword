@@ -33,8 +33,6 @@ namespace Sword
 		public string Description;
 		public string Category;
 		public string Language;
-		public string Version;
-		public string Delta;
 	};
 	
 	[StructLayout(LayoutKind.Sequential)]
@@ -75,51 +73,53 @@ namespace Sword
 	
 	public static class NativeMethods
 	{
-		public const string DLLNAME = "libsword";
 		
-		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		
+		public const string DLLNAME = "libsword.so";
+		
+		[DllImport(DLLNAME)]
 		public static extern IntPtr org_crosswire_sword_SWMgr_new();
 		
-		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		[DllImport(DLLNAME)]
 		public static extern IntPtr org_crosswire_sword_SWMgr_newWithPath(string path);
 		
-		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		[DllImport(DLLNAME)]
 		public static extern IntPtr org_crosswire_sword_SWMgr_getModuleByName(IntPtr hSWMgr, string moduleName);
 		
-		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		[DllImport(DLLNAME)]
 		public static extern void org_crosswire_sword_SWModule_setKeyText(IntPtr hSWModule, string key);
 		
-		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		[DllImport(DLLNAME)]
 		public static extern IntPtr org_crosswire_sword_SWModule_renderText(IntPtr hSWModule);
 		
-		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		[DllImport(DLLNAME)]
 		public static extern IntPtr org_crosswire_sword_SWModule_getRawEntry(IntPtr hSWModule);
 
-		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		[DllImport(DLLNAME)]
 		public static extern IntPtr org_crosswire_sword_SWModule_getKeyText(IntPtr hSWModule);
 		
-		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		[DllImport(DLLNAME)]
 		public static extern void org_crosswire_sword_SWMgr_delete(IntPtr hSWMgr);
 		
-		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		[DllImport(DLLNAME)]
 		public static extern IntPtr org_crosswire_sword_SWMgr_getModInfoList(IntPtr hSWMgr);
 		
-		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		[DllImport(DLLNAME)]
 		public static extern IntPtr org_crosswire_sword_SWModule_stripText(IntPtr hSWModule);
 		
-		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		[DllImport(DLLNAME)]
 		public static extern void org_crosswire_sword_SWModule_setRawEntry(IntPtr hSWModule, string entryBuffer);
 		
-		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		[DllImport(DLLNAME)]
 		public static extern void org_crosswire_sword_SWModule_terminateSearch(IntPtr hSWModule);
 		
-		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		[DllImport(DLLNAME)]
 		public static extern char org_crosswire_sword_SWModule_popError(IntPtr hSWModule);
 		
-		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		[DllImport(DLLNAME)]
 		public static extern long org_crosswire_sword_SWModule_getEntrySize(IntPtr hSWModule);
 		
-		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]
+		[DllImport(DLLNAME)]
 		public static extern IntPtr org_crosswire_sword_SWModule_getEntryAttribute(IntPtr hSWModule, string level1, string level2, string level3, char filteredBool);
 		
 		[DllImport(DLLNAME, CallingConvention = CallingConvention.Cdecl)]

@@ -29,7 +29,6 @@
 #include <swfilter.h>
 #include <markupfiltmgr.h>
 #include <versekey.h>
-//#include "../../bindings/corba/orbitcpp/webmgr.hpp"
 
 
 using sword::SWMgr;
@@ -38,7 +37,6 @@ using sword::SWModule;
 using sword::FMT_WEBIF;
 using sword::FMT_HTMLHREF;
 using sword::FMT_RTF;
-using sword::FMT_LATEX;
 using sword::ModMap;
 using sword::AttributeTypeList;
 using sword::AttributeList;
@@ -50,13 +48,8 @@ using sword::FilterList;
 int main(int argc, char **argv)
 {
 	
-// for testing webmgr
-//	WebMgr manager((const char *)0);
-//	manager.setJavascript(true);
-//
-	SWMgr manager(new MarkupFilterMgr(FMT_HTMLHREF));
-//	SWMgr manager(new MarkupFilterMgr(FMT_WEBIF));
-
+	SWMgr manager(new MarkupFilterMgr(FMT_WEBIF));
+//	SWMgr manager(new MarkupFilterMgr(FMT_HTMLHREF));
 	SWModule *target;
 
 	if (argc != 3) {

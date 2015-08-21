@@ -37,13 +37,6 @@
 #include <localemgr.h>
 #include <treekeyidx.h>
 #include <installmgr.h>
-#include <remotetrans.h>
-
-#define BIBLESYNC
-
-#ifdef BIBLESYNC
-#include <biblesync.hh>
-#endif
 
 #include "webmgr.hpp"
 #include "org_crosswire_android_sword_SWMgr.h"
@@ -57,83 +50,9 @@ using std::vector;
 
 using namespace sword;
 
-namespace {
+
 WebMgr *mgr = 0;
 InstallMgr *installMgr = 0;
-
-#ifdef BIBLESYNC
-BibleSync *bibleSync = 0;
-#endif
-jobject bibleSyncListener = 0;
-JNIEnv *bibleSyncListenerEnv = 0;
-
-class InstallStatusReporter : public StatusReporter {
-public:
-	JNIEnv *env;
-	jobject callback;
-	unsigned long last;
-	void init(JNIEnv *env, jobject callback) {
-		this->env = env;
-		this->callback = callback;
-		last = 0xffffffff;
-	}
-        virtual void update(unsigned long totalBytes, unsigned long completedBytes) {
-
-		// assert we have a callback
-		if (!callback) return;
-
-		if (completedBytes != last) {
-			last = completedBytes;
-			jclass cls = env->GetObjectClass(callback);
-			jmethodID mid = env->GetMethodID(cls, "update", "(JJ)V");
-			if (mid != 0) {
-				env->CallVoidMethod(callback, mid, (jlong)totalBytes, (jlong)completedBytes);
-			}
-			env->DeleteLocalRef(cls);
-		}
-		
-/*
-		int p = (totalBytes > 0) ? (int)(74.0 * ((double)completedBytes / (double)totalBytes)) : 0;
-		for (;last < p; ++last) {
-			if (!last) {
-				SWBuf output;
-				output.setFormatted("[ File Bytes: %ld", totalBytes);
-				while (output.size() < 75) output += " ";
-				output += "]";
-				cout << output.c_str() << "\n ";
-			}
-			cout << "-";
-		}
-		cout.flush();
-*/
-	}
-        virtual void preStatus(long totalBytes, long completedBytes, const char *message) {
-
-		// assert we have a callback
-		if (!callback) return;
-
-		jclass cls = env->GetObjectClass(callback);
-		jmethodID mid = env->GetMethodID(cls, "preStatus", "(JJLjava/lang/String;)V");
-		if (mid != 0) {
-			jstring msg = env->NewStringUTF(assureValidUTF8((const char *)message));
-			env->CallVoidMethod(callback, mid, (jlong)totalBytes, (jlong)completedBytes, msg);
-			env->DeleteLocalRef(msg);
-		}
-		env->DeleteLocalRef(cls);
-/*
-		SWBuf output;
-		output.setFormatted("[ Total Bytes: %ld; Completed Bytes: %ld", totalBytes, completedBytes);
-		while (output.size() < 75) output += " ";
-		output += "]";
-		cout << "\n" << output.c_str() << "\n ";
-		int p = (int)(74.0 * (double)completedBytes/totalBytes);
-		for (int i = 0; i < p; ++i) { cout << "="; }
-		cout << "\n\n" << message << "\n";
-		last = 0;
-*/
-	}
-} *installStatusReporter = 0;
-bool disclaimerConfirmed = false;
 
 class AndroidLogger : public SWLog {
 	vector<int> levelMapping;
@@ -170,86 +89,28 @@ static void init() {
 			config.Save();
 		}
 		mgr = new WebMgr("/sdcard/sword");
-
-		// for And Bible modules
-		mgr->augmentModules("/sdcard/Android/data/net.bible.android.activity/files", true);
 	}
 }
 
 
 static void initInstall() {
 
-	if (!installStatusReporter) {
-		installStatusReporter = new InstallStatusReporter();
-	}
 	if (!installMgr) {
-SWLog::getSystemLog()->logDebug("initInstall: installMgr is null");
 		SWBuf baseDir  = "/sdcard/sword/InstallMgr";
 		SWBuf confPath = baseDir + "/InstallMgr.conf";
 		// be sure we have at least some config file already out there
-SWLog::getSystemLog()->logDebug("initInstall: confPath: %s", confPath.c_str());
 		if (!FileMgr::existsFile(confPath.c_str())) {
-SWLog::getSystemLog()->logDebug("initInstall: file doesn't exist: %s", confPath.c_str());
 			FileMgr::createParent(confPath.c_str());
+			remove(confPath.c_str());
+
 			SWConfig config(confPath.c_str());
 			config["General"]["PassiveFTP"] = "true";
 			config.Save();
 		}
-		installMgr = new InstallMgr(baseDir, installStatusReporter);
-		if (disclaimerConfirmed) installMgr->setUserDisclaimerConfirmed(true);
-SWLog::getSystemLog()->logDebug("initInstall: instantiated InstallMgr with baseDir: %s", baseDir.c_str());
+		installMgr = new InstallMgr(baseDir);
 	}
 }
 
-#ifdef BIBLESYNC
-void bibleSyncCallback(char cmd, string bible, string ref, string alt, string group, string domain, string info, string dump) {
-SWLog::getSystemLog()->logDebug("bibleSync callback msg: %c; bible: %s; ref: %s; alt: %s; group: %s; domain: %s; info: %s; dump: %s", cmd, bible.c_str(), ref.c_str(), alt.c_str(), group.c_str(), domain.c_str(), info.c_str(), dump.c_str());
-	if (::bibleSyncListener) {
-SWLog::getSystemLog()->logDebug("bibleSync listener is true");
-		jclass cls = bibleSyncListenerEnv->GetObjectClass(::bibleSyncListener);
-		jmethodID mid = bibleSyncListenerEnv->GetMethodID(cls, "messageReceived", "(Ljava/lang/String;)V");
-SWLog::getSystemLog()->logDebug("bibleSync listener mid: %ld", mid);
-		if (mid) {
-SWLog::getSystemLog()->logDebug("bibleSync listener mid is available");
-			switch(cmd) {
-			// error
-			case 'E':
-			// mismatch
-			case 'M':
-			// new speaker
-			case 'S':
-			// dead speaker
-			case 'D':
-			// announce
-			case 'A':
-				break;
-			// navigation
-			case 'N':
-SWLog::getSystemLog()->logDebug("bibleSync Nav Received: %s", ref.c_str());
-				jstring msg = bibleSyncListenerEnv->NewStringUTF(ref.c_str());
-				bibleSyncListenerEnv->CallVoidMethod(::bibleSyncListener, mid, msg);
-				bibleSyncListenerEnv->DeleteLocalRef(msg);
-				break;
-			}
-		}
-SWLog::getSystemLog()->logDebug("bibleSync listener deleting local ref to cls");
-		bibleSyncListenerEnv->DeleteLocalRef(cls);
-	}
-}
-#endif
-
-static void initBibleSync() {
-#ifdef BIBLESYNC
-	if (!bibleSync) {
-SWLog::getSystemLog()->logDebug("bibleSync initializing c-tor");
-		bibleSync = new BibleSync("SWORD", (const char *)SWVersion().currentVersion, "SwordUser");
-SWLog::getSystemLog()->logDebug("bibleSync initializing setMode");
-		bibleSync->setMode(BSP_MODE_PERSONAL, bibleSyncCallback, "passphrase");
-	}
-#endif
-}
-
-}
 
 
 JNIEXPORT jstring JNICALL Java_org_crosswire_android_sword_SWMgr_version
@@ -648,9 +509,7 @@ SWLog::getSystemLog()->logDebug("setKeyText(%s, %s)", module->getName(), keyText
 		sword::VerseKey *vkey = SWDYNAMIC_CAST(VerseKey, key);
 		if (vkey && (*keyText=='+' ||*keyText=='-')) {
 			if (!stricmp(keyText+1, "book")) {
-				int newBook = vkey->getBook() + ((*keyText=='+')?1:-1);
-SWLog::getSystemLog()->logDebug("setting book to %d", newBook);
-				vkey->setBook(newBook);
+				vkey->setBook(vkey->getBook() + ((*keyText=='+')?1:-1));
 				env->ReleaseStringUTFChars(keyTextJS, keyText);
 				return;
 			}
@@ -709,26 +568,6 @@ JNIEXPORT jstring JNICALL Java_org_crosswire_android_sword_SWModule_getRenderTex
 
 /*
  * Class:     org_crosswire_android_sword_SWModule
- * Method:    getRenderHeader
- * Signature: ()Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_org_crosswire_android_sword_SWModule_getRenderHeader
-  (JNIEnv *env, jobject me) {
-
-	init();
-
-	SWModule *module = getModule(env, me);
-
-	jstring retVal = 0;
-	if (module) {
-		retVal = env->NewStringUTF(assureValidUTF8(((const char *)(module->getRenderHeader() ? module->getRenderHeader():""))));
-	}
-	return retVal;
-}
-
-
-/*
- * Class:     org_crosswire_android_sword_SWModule
  * Method:    terminateSearch
  * Signature: ()V
  */
@@ -757,8 +596,7 @@ JNIEXPORT jchar JNICALL Java_org_crosswire_android_sword_SWModule_error
 
 	SWModule *module = getModule(env, me);
 	
-	int error = (module) ? module->popError() : -99;
-	return error;
+	return (module) ? module->popError() : -99;
 }
 
 
@@ -808,7 +646,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_crosswire_android_sword_SWModule_getEntr
 		sword::AttributeList::iterator i2Start, i2End;
 		sword::AttributeValue::iterator i3Start, i3End;
 
-		if ((level1) && (*level1) && *level1 != '-') {
+		if ((level1) && (*level1)) {
 			i1Start = entryAttribs.find(level1);
 			i1End = i1Start;
 			if (i1End != entryAttribs.end())
@@ -819,50 +657,35 @@ JNIEXPORT jobjectArray JNICALL Java_org_crosswire_android_sword_SWModule_getEntr
 			i1End   = entryAttribs.end();
 		}
 		for (;i1Start != i1End; ++i1Start) {
-			if (level1 && *level1 && *level1 == '-') {
-				results.push_back(i1Start->first);
+			if ((level2) && (*level2)) {
+				i2Start = i1Start->second.find(level2);
+				i2End = i2Start;
+				if (i2End != i1Start->second.end())
+					++i2End;
 			}
 			else {
-				if (level2 && *level2 && *level2 != '-') {
-					i2Start = i1Start->second.find(level2);
-					i2End = i2Start;
-					if (i2End != i1Start->second.end())
-						++i2End;
+				i2Start = i1Start->second.begin();
+				i2End   = i1Start->second.end();
+			}
+			for (;i2Start != i2End; ++i2Start) {
+				if ((level3) && (*level3)) {
+					i3Start = i2Start->second.find(level3);
+					i3End = i3Start;
+					if (i3End != i2Start->second.end())
+						++i3End;
 				}
 				else {
-					i2Start = i1Start->second.begin();
-					i2End   = i1Start->second.end();
+					i3Start = i2Start->second.begin();
+					i3End   = i2Start->second.end();
 				}
-				for (;i2Start != i2End; ++i2Start) {
-					if (level2 && *level2 && *level2 == '-') {
-						results.push_back(i2Start->first);
-					}
-					else {
-						if (level3 && *level3 && *level3 != '-') {
-							i3Start = i2Start->second.find(level3);
-							i3End = i3Start;
-							if (i3End != i2Start->second.end())
-								++i3End;
-						}
-						else {
-							i3Start = i2Start->second.begin();
-							i3End   = i2Start->second.end();
-						}
-						for (;i3Start != i3End; ++i3Start) {
-							if (level3 && *level3 && *level3 == '-') {
-								results.push_back(i3Start->first);
-							}
-							else {
-								results.push_back(i3Start->second);
-							}
-						}
-						if (i3Start != i3End)
-							break;
-					}
+				for (;i3Start != i3End; ++i3Start) {
+					results.push_back(i3Start->second);
 				}
-				if (i2Start != i2End)
+				if (i3Start != i3End)
 					break;
 			}
+			if (i2Start != i2End)
+				break;
 		}
 
 		ret = (jobjectArray) env->NewObjectArray(results.size(), clazzString, NULL);
@@ -979,7 +802,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_crosswire_android_sword_SWModule_getKeyC
 
 		sword::VerseKey *vkey = SWDYNAMIC_CAST(VerseKey, key);
 		if (vkey) {
-			ret = (jobjectArray) env->NewObjectArray(10, clazzString, NULL);
+			ret = (jobjectArray) env->NewObjectArray(7, clazzString, NULL);
 			SWBuf num;
 			num.appendFormatted("%d", vkey->getTestament());
 			env->SetObjectArrayElement(ret, 0, env->NewStringUTF(assureValidUTF8(num.c_str())));
@@ -999,9 +822,6 @@ JNIEXPORT jobjectArray JNICALL Java_org_crosswire_android_sword_SWModule_getKeyC
 			num.appendFormatted("%d", vkey->getVerseMax());
 			env->SetObjectArrayElement(ret, 5, env->NewStringUTF(assureValidUTF8(num.c_str())));
 			env->SetObjectArrayElement(ret, 6, env->NewStringUTF(assureValidUTF8(vkey->getBookName())));
-			env->SetObjectArrayElement(ret, 7, env->NewStringUTF(assureValidUTF8(vkey->getOSISRef())));
-			env->SetObjectArrayElement(ret, 8, env->NewStringUTF(assureValidUTF8(vkey->getShortText())));
-			env->SetObjectArrayElement(ret, 9, env->NewStringUTF(assureValidUTF8(vkey->getBookAbbrev())));
 		}
 		else {
 			TreeKeyIdx *tkey = SWDYNAMIC_CAST(TreeKeyIdx, key);
@@ -1281,9 +1101,6 @@ struct pu {
 void percentUpdate(char percent, void *userData) {
 	struct pu *p = (struct pu *)userData;
 
-	// assert we've actually been given a progressReporter
-	if (!p->progressReporter) return;
-
 	if (percent != p->last) {
 		p->last = percent;
 		jclass cls = p->env->GetObjectClass(p->progressReporter);
@@ -1291,7 +1108,6 @@ void percentUpdate(char percent, void *userData) {
 		if (mid != 0) {
 			p->env->CallVoidMethod(p->progressReporter, mid, (jint)percent);
 		}
-		p->env->DeleteLocalRef(cls);
 	}
 }
 
@@ -1309,7 +1125,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_crosswire_android_sword_SWModule_search
 	const int MAX_RETURN_COUNT = 999999;
 
 	const char *expression = env->GetStringUTFChars(expressionJS, NULL);
-	const char *scope = scopeJS ? env->GetStringUTFChars(scopeJS, NULL) : 0;
+	const char *scope = env->GetStringUTFChars(scopeJS, NULL);
 
 	jclass clazzSearchHit = env->FindClass("org/crosswire/android/sword/SWModule$SearchHit");
 	jobjectArray ret = 0;
@@ -1371,7 +1187,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_crosswire_android_sword_SWModule_search
 		env->DeleteLocalRef(modName);
 	}
 
-	if (scope) env->ReleaseStringUTFChars(scopeJS, scope);
+	env->ReleaseStringUTFChars(scopeJS, scope);
 	env->ReleaseStringUTFChars(expressionJS, expression);
 
 	return (ret) ? ret : (jobjectArray) env->NewObjectArray(0, clazzSearchHit, NULL);
@@ -1455,7 +1271,6 @@ JNIEXPORT jobjectArray JNICALL Java_org_crosswire_android_sword_InstallMgr_getRe
 	for (InstallSourceMap::iterator it = installMgr->sources.begin(); it != installMgr->sources.end(); ++it) {
 		count++;
 	}
-SWLog::getSystemLog()->logDebug("getRemoteSources: count: %d\n", count);
 	ret = (jobjectArray) env->NewObjectArray(count, clazzString, NULL);
 	count = 0;
 	for (InstallSourceMap::iterator it = installMgr->sources.begin(); it != installMgr->sources.end(); ++it) {
@@ -1563,18 +1378,16 @@ SWLog::getSystemLog()->logDebug("remoteListModules returning %d length array\n",
 	return ret;
 }
 
+
 /*
  * Class:     org_crosswire_android_sword_InstallMgr
  * Method:    remoteInstallModule
  * Signature: (Ljava/lang/String;Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_org_crosswire_android_sword_InstallMgr_remoteInstallModule
-  (JNIEnv *env, jobject me, jstring sourceNameJS, jstring modNameJS, jobject progressReporter) {
+  (JNIEnv *env, jobject me, jstring sourceNameJS, jstring modNameJS) {
 
-	init();
 	initInstall();
-
-	installStatusReporter->init(env, progressReporter);
 
 	const char *sourceName = env->GetStringUTFChars(sourceNameJS, NULL);
 SWLog::getSystemLog()->logDebug("remoteInstallModule: sourceName: %s\n", sourceName);
@@ -1601,17 +1414,6 @@ SWLog::getSystemLog()->logDebug("remoteInstallModule: modName: %s\n", modName);
 	module = it->second;
 
 	int error = installMgr->installModule(mgr, 0, module->getName(), is);
-
-	if (progressReporter) {
-		jclass cls = env->GetObjectClass(progressReporter);
-		jmethodID mid = env->GetMethodID(cls, "preStatus", "(JJLjava/lang/String;)V");
-		if (mid != 0) {
-			jstring msg = env->NewStringUTF("Complete");
-			env->CallVoidMethod(progressReporter, mid, (jlong)0, (jlong)0, msg);
-			env->DeleteLocalRef(msg);
-		}
-		env->DeleteLocalRef(cls);
-	}
 
 	return error;
 }
@@ -1673,50 +1475,6 @@ JNIEXPORT void JNICALL Java_org_crosswire_android_sword_InstallMgr_setUserDiscla
 
 	initInstall();
 
-	disclaimerConfirmed = true;
 	installMgr->setUserDisclaimerConfirmed(true);
-}
-
-
-/*
- * Class:     org_crosswire_android_sword_SWMgr
- * Method:    sendBibleSyncMessage
- * Signature: (Ljava/lang/String;)V
- */
-JNIEXPORT void JNICALL Java_org_crosswire_android_sword_SWMgr_sendBibleSyncMessage
-  (JNIEnv *env, jobject me, jstring osisRefJS) {
-	initBibleSync();
-	const char *osisRef = env->GetStringUTFChars(osisRefJS, NULL);
-
-#ifdef BIBLESYNC
-	BibleSync_xmit_status retval = bibleSync->Transmit(BSP_SYNC, "Bible", osisRef);
-#endif
-
-	env->ReleaseStringUTFChars(osisRefJS, osisRef);
-}
-
-
-/*
- * NOTE: this method blocks and should be called in a new thread
- * Class:     org_crosswire_android_sword_SWMgr
- * Method:    registerBibleSyncListener
- * Signature: (Ljava/lang/Object;)V
- */
-JNIEXPORT void JNICALL Java_org_crosswire_android_sword_SWMgr_registerBibleSyncListener
-  (JNIEnv *env, jobject me, jobject bibleSyncListener) {
-SWLog::getSystemLog()->logDebug("registerBibleSyncListener");
-	::bibleSyncListener = bibleSyncListener;
-	::bibleSyncListenerEnv = env;
-SWLog::getSystemLog()->logDebug("registerBibleSyncListener - calling init");
-	initBibleSync();
-#ifdef BIBLESYNC
-SWLog::getSystemLog()->logDebug("registerBibleSyncListener - starting while listener");
-	while(::bibleSyncListener) {
-SWLog::getSystemLog()->logDebug("bibleSyncListener - while loop iteration");
-		BibleSync::Receive(bibleSync);
-SWLog::getSystemLog()->logDebug("bibleSyncListener - sleeping for 2 seconds");
-		sleep(2);
-	}
-#endif
 }
 

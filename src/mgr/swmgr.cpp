@@ -74,10 +74,8 @@
 #include <cipherfil.h>
 #include <rawfiles.h>
 #include <ztext.h>
-#include <ztext4.h>
 #include <zld.h>
 #include <zcom.h>
-#include <zcom4.h>
 #include <lzsscomprs.h>
 #include <utf8greekaccents.h>
 #include <utf8cantillation.h>
@@ -95,11 +93,7 @@
 
 #ifndef EXCLUDEZLIB
 #include "zipcomprs.h"
-#endif
-#ifndef EXCLUDEBZIP2
 #include "bz2comprs.h"
-#endif
-#ifndef EXCLUDEXZ
 #include "xzcomprs.h"
 #endif
 
@@ -918,14 +912,10 @@ SWModule *SWMgr::createModule(const char *name, const char *driver, ConfigEntMap
 	else
 		markup = FMT_GBF;
 
-	if (!stricmp(encoding.c_str(), "UTF-8")) {
-		enc = ENC_UTF8;
-	}
-	else if (!stricmp(encoding.c_str(), "SCSU")) {
+	if (!stricmp(encoding.c_str(), "SCSU"))
 		enc = ENC_SCSU;
-	}
-	else if (!stricmp(encoding.c_str(), "UTF-16")) {
-		enc = ENC_UTF16;
+	else if (!stricmp(encoding.c_str(), "UTF-8")) {
+		enc = ENC_UTF8;
 	}
 	else enc = ENC_LATIN1;
 
@@ -942,7 +932,7 @@ SWModule *SWMgr::createModule(const char *name, const char *driver, ConfigEntMap
 		direction = DIRECTION_LTR;
 	}
 
-	if ((!stricmp(driver, "zText")) || (!stricmp(driver, "zCom")) || (!stricmp(driver, "zText4")) || (!stricmp(driver, "zCom4"))) {
+	if ((!stricmp(driver, "zText")) || (!stricmp(driver, "zCom"))) {
 		SWCompress *compress = 0;
 		int blockType = CHAPTERBLOCKS;
 		misc1 = ((entry = section.find("BlockType")) != section.end()) ? (*entry).second : (SWBuf)"CHAPTER";
@@ -958,14 +948,10 @@ SWModule *SWMgr::createModule(const char *name, const char *driver, ConfigEntMap
 		if (!stricmp(misc1.c_str(), "ZIP"))
 			compress = new ZipCompress();
 		else
-#endif
-#ifndef EXCLUDEBZIP2
-		if (!stricmp(misc1.c_str(), "BZIP2"))
+		if (!stricmp(misc1.c_str(), "BZIP2_UNSUPPORTED"))
 			compress = new Bzip2Compress();
 		else
-#endif
-#ifndef EXCLUDEXZ
-		if (!stricmp(misc1.c_str(), "XZ"))
+		if (!stricmp(misc1.c_str(), "XZ_UNSUPPORTED"))
 			compress = new XzCompress();
 		else
 #endif
@@ -975,12 +961,7 @@ SWModule *SWMgr::createModule(const char *name, const char *driver, ConfigEntMap
 		if (compress) {
 			if (!stricmp(driver, "zText"))
 				newmod = new zText(datapath.c_str(), name, description.c_str(), blockType, compress, 0, enc, direction, markup, lang.c_str(), versification);
-			else if (!stricmp(driver, "zText4"))
-				newmod = new zText4(datapath.c_str(), name, description.c_str(), blockType, compress, 0, enc, direction, markup, lang.c_str(), versification);
-			else if (!stricmp(driver, "zCom4"))
-				newmod = new zCom4(datapath.c_str(), name, description.c_str(), blockType, compress, 0, enc, direction, markup, lang.c_str(), versification);
-			else
-				newmod = new zCom(datapath.c_str(), name, description.c_str(), blockType, compress, 0, enc, direction, markup, lang.c_str(), versification);
+			else	newmod = new zCom(datapath.c_str(), name, description.c_str(), blockType, compress, 0, enc, direction, markup, lang.c_str(), versification);
 		}
 	}
 
@@ -1042,16 +1023,6 @@ SWModule *SWMgr::createModule(const char *name, const char *driver, ConfigEntMap
 #ifndef EXCLUDEZLIB
 		if (!stricmp(misc1.c_str(), "ZIP"))
 			compress = new ZipCompress();
-		else
-#endif
-#ifndef EXCLUDEBZIP2
-		if (!stricmp(misc1.c_str(), "BZIP2"))
-			compress = new Bzip2Compress();
-		else
-#endif
-#ifndef EXCLUDEXZ
-		if (!stricmp(misc1.c_str(), "XZ"))
-			compress = new XzCompress();
 		else
 #endif
 		if (!stricmp(misc1.c_str(), "LZSS"))

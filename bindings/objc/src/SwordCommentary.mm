@@ -69,6 +69,12 @@
     return [super init];
 }
 
+- (void)finalize {
+    [super finalize];
+}
 
+- (void)dealloc {
+    [super dealloc];
+}
 
 @end

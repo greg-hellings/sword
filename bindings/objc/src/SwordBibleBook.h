@@ -8,12 +8,11 @@
 
 #import <Foundation/Foundation.h>
 
-@class SwordBibleChapter;
-
 #ifdef __cplusplus
 #include <versificationmgr.h>
 #include <versekey.h>
 #include <localemgr.h>
+class sword::VersificationMgr::Book;
 #endif
 
 @interface SwordBibleBook : NSObject {
@@ -23,16 +22,16 @@
     
     NSString *localizedName;
     int number;
-    int numberInTestament;
-    int testament;
+    char numberInTestament;
+    char testament;
     NSArray *chapters;
 }
 
 @property (readwrite) int number;
-@property (readwrite) int numberInTestament;
-@property (readwrite) int testament;
-@property (strong, readwrite) NSString *localizedName;
-@property (strong, readwrite) NSArray *chapters;
+@property (readwrite) char numberInTestament;
+@property (readwrite) char testament;
+@property (retain, readwrite) NSString *localizedName;
+@property (retain, readwrite) NSArray *chapters;
 
 #ifdef __cplusplus
 - (id)initWithBook:(sword::VersificationMgr::Book *)aBook;

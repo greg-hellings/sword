@@ -12,6 +12,7 @@
 #ifdef __cplusplus
 #include <swmgr.h>
 #include <installmgr.h>
+class sword::SWModule;
 #endif
 
 @class SwordManager;
@@ -24,6 +25,11 @@
 #ifdef __cplusplus
     sword::InstallSource *swInstallSource;
 #endif
+    
+    BOOL temporarySource;
+
+    /** the sword manager for this source */
+    SwordManager *swordManager;    
 }
 
 // init
@@ -64,6 +70,7 @@
 
 /** Returns the SwordManager attached to this SwordInstallSourceController */
 - (SwordManager *)swordManager;
+- (void)setSwordManager:(SwordManager *)swManager;
 
 #ifdef __cplusplus
 - (sword::InstallSource *)installSource;
