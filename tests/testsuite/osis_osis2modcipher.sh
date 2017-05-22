@@ -14,6 +14,7 @@ BlockType=BOOK
 CompressType=ZIP
 SourceType=OSIS
 Lang=en
+GlobalOptionFilter=OSISLemma
 GlobalOptionFilter=OSISStrongs
 GlobalOptionFilter=OSISMorph
 GlobalOptionFilter=OSISFootnotes
@@ -27,3 +28,10 @@ Feature=StrongsNumbers
 cp osis_basic.good osis_osis2modcipher.good
 cd tmp/osis_osis2modcipher
 ../../../osistest OSISReference
+
+echo
+echo "-- Plain output"
+../../../../utilities/diatheke/diatheke -b OSISReference -f plain -k Acts 2:19-20 | grep -v OSISReference
+echo
+echo "-- RTF output"
+../../../../utilities/diatheke/diatheke -b OSISReference -f RTF -k Acts 2:19-20 | grep -v OSISReference
