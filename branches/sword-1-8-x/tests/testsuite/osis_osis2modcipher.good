@@ -7,7 +7,7 @@ Raw:
 <div sID="gen12" type="section"/> <title canonical="true" type="psalm">A Psalm of David, when he fled from Absalom his son.</title> <div sID="gen13" type="x-p"/> <lg sID="gen14"/> 
 -------
 Rendered Header:
- <h3 class="title psalm">A Psalm of David, when he fled from Absalom his son.</h3>
+ <h3 class="title psalm canonical">A Psalm of David, when he fled from Absalom his son.</h3>
 
 <br />
  
@@ -32,6 +32,7 @@ CSS:
 		.colophon {font-style: italic; font-size=small; display:block;}
 		.rdg { font-style: italic;}
 		.catchWord {font-style: bold;}
+		.x-p-indent {text-indent: 10px;}
 	
 -------
 RenderText:
@@ -51,7 +52,7 @@ Raw:
 Rendered Header:
  <h3 class="title">The Beginning of the Ministry of Jesus</h3>
 
-<h3 class="title parallel">(<a href="passagestudy.jsp?action=showRef&type=scripRef&value=Matt.4.12-Matt.4.22&module=">Matt 4:12–22</a>; <a href="passagestudy.jsp?action=showRef&type=scripRef&value=Luke.4.14&module=">Luke 4:14</a>, <a href="passagestudy.jsp?action=showRef&type=scripRef&value=Luke.4.15&module=">15</a>; <a href="passagestudy.jsp?action=showRef&type=scripRef&value=Luke.5.1-Luke.5.11&module=">5:1-11</a>) </h3>
+<h3 class="title parallel">(<a class="" href="passagestudy.jsp?action=showRef&type=scripRef&value=Matt.4.12-Matt.4.22&module=">Matt 4:12–22</a>; <a class="" href="passagestudy.jsp?action=showRef&type=scripRef&value=Luke.4.14&module=">Luke 4:14</a>, <a class="" href="passagestudy.jsp?action=showRef&type=scripRef&value=Luke.4.15&module=">15</a>; <a class="" href="passagestudy.jsp?action=showRef&type=scripRef&value=Luke.5.1-Luke.5.11&module=">5:1-11</a>) </h3>
 
 <br />
 
@@ -76,6 +77,7 @@ CSS:
 		.colophon {font-style: italic; font-size=small; display:block;}
 		.rdg { font-style: italic;}
 		.catchWord {font-style: bold;}
+		.x-p-indent {text-indent: 10px;}
 	
 -------
 RenderText:
@@ -122,3 +124,18 @@ Tables work like this: <table><tbody>
 <br />
 
 [ Genesis 1:2 ] Text of verse 2.
+
+-- Plain output
+Acts 2:19: ‘* And I will grant wonders in the sky above *
+* And signs on the earth below *,
+* Blood, and fire, and vapor of smoke *.
+
+Acts 2:20: ‘* The sun will be turned into darkness *
+* And the moon into blood *,
+* Before the great and glorious day of the Lord shall come *.
+ 
+
+-- RTF output
+{\rtf1\ansi{\fonttbl{\f0\froman\fcharset0\fprq2 Times New Roman;}{\f1\fdecor\fprq2 Gentium;}{\f7\froman\fcharset2\fprq2 Symbol;}}Acts 2:19: {\f1 ‘{\i1 {And I will grant} {wonders} {in the sky} {above}}{\par} {\i1 {And signs} {on the earth} {below}},{\par} {\i1 {Blood}, {and fire}, {and vapor} {of smoke}}.{\par}}\par 
+Acts 2:20: {\f1 ‘{\i1 {The sun} {will be turned} {into darkness}}{\par} {\i1 {And the moon} {into blood}},{\par} {\i1 {Before} {the great} {and glorious} {day} {of the Lord} {shall come}}.{\par} }\par 
+}
