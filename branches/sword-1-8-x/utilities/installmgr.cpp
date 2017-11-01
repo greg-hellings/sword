@@ -48,6 +48,7 @@ SWBuf baseDir;
 SWBuf confPath;
 
 bool isConfirmed;
+bool isUnvPeerAllowed;
 
 void usage(const char *progName = 0, const char *error = 0);
 
@@ -90,6 +91,30 @@ virtual bool isUserDisclaimerConfirmed() const {
 
 };
 
+bool isUnverifiedPeerAllowed() {
+	static bool allowed = false;
+	
+	if (isUnvPeerAllowed) { 
+		allowed = true;
+	}
+        if (!allowed) {
+		cout << "\n\n";
+		cout << "While connecting to an encrypted install source, SWORD can allow\n";
+		cout << "unverified peers, e.g., self-signed certificates. While this is\n";
+		cout << "generally considered safe because SWORD only retrieves Bible content\n";
+		cout << "and does not send any data to the server, it could still possibly\n";
+		cout << "allow a malicious actor to sit between you and the server, as with\n";
+		cout << "unencrypted sources.  Type no to turn this off.\n\n";
+		cout << "Would you like to allow unverified peers? [yes] ";
+
+		char prompt[10];
+		fgets(prompt, 9, stdin);
+		allowed = (strcmp(prompt, "no\n"));
+		cout << "\n";
+	}
+	return allowed;
+}
+
 class MyStatusReporter : public StatusReporter {
 	int last;
         virtual void update(unsigned long totalBytes, unsigned long completedBytes) {
@@ -127,7 +152,7 @@ void init() {
 		if (!mgr->config)
 			usage(0, "ERROR: SWORD configuration not found.  Please configure SWORD before using this program.");
 
-		SWBuf baseDir = mgr->getHomeDir();
+		SWBuf baseDir = FileMgr::getSystemFileMgr()->getHomeDir();
 		if (baseDir.length() < 1) baseDir = ".";
 		baseDir += "/.sword/InstallMgr";
 		confPath = baseDir + "/InstallMgr.conf";
@@ -153,7 +178,7 @@ void finish(int status) {
 }
 
 
-void createBasicConfig(bool enableRemote, bool addCrossWire) {
+void createBasicConfig(bool enableRemote, bool addCrossWire, bool unverifiedPeerAllowed) {
 
 	FileMgr::createParent(confPath.c_str());
 	remove(confPath.c_str());
@@ -165,10 +190,11 @@ void createBasicConfig(bool enableRemote, bool addCrossWire) {
 
 	SWConfig config(confPath.c_str());
 	config["General"]["PassiveFTP"] = "true";
+	config["General"]["UnverifiedPeerAllowed"] = (unverifiedPeerAllowed) ? "true" : "false";
 	if (enableRemote) {
 		config["Sources"]["FTPSource"] = is.getConfEnt();
 	}
-	config.Save();
+	config.save();
 }
 
 
@@ -176,11 +202,13 @@ void initConfig() {
 	init();
 
 	bool enable = installMgr->isUserDisclaimerConfirmed();
+	bool allowed = isUnverifiedPeerAllowed();
 
-	createBasicConfig(enable, true);
+	createBasicConfig(enable, true, allowed);
 
 	cout << "\n\nInitialized basic config file at [" << confPath << "]\n";
 	cout << "with remote source features " << ((enable) ? "ENABLED" : "DISABLED") << "\n";
+	cout << "with unverified peers " << ((allowed) ? "ALLOWED" : "DISALLOWED") << "\n";
 }
 
 
@@ -194,7 +222,7 @@ void syncConfig() {
 
 	// be sure we have at least some config file already out there
 	if (!FileMgr::existsFile(confPath.c_str())) {
-		createBasicConfig(true, false);
+		createBasicConfig(true, false, false);
 		finish(1); // cleanup and don't exit
 		init();    // re-init with InstallMgr which uses our new config
 	}
@@ -277,6 +305,26 @@ void remoteListModules(const char *sourceName, bool onlyNewAndUpdated = false) {
 }
 
 
+void remoteDescribeModule(const char *sourceName, const char *modName) {
+	init();
+	InstallSourceMap::iterator source = installMgr->sources.find(sourceName);
+	if (source == installMgr->sources.end()) {
+		fprintf(stderr, "Couldn't find remote source [%s]\n", sourceName);
+		finish(-3);
+	}
+	SWMgr *mgr = source->second->getMgr();
+	SWModule *m = mgr->getModule(modName);
+	if (!m) {
+		fprintf(stderr, "Couldn't find module [%s] in source [%s]\n", modName, sourceName);
+		finish(-3);
+	}
+	cout << "Module Description\n\n";
+	for (ConfigEntMap::const_iterator it = m->getConfig().begin(); it != m->getConfig().end(); ++it) {
+		cout << "[" << it->first << "]:" << it->second << "\n";
+	}
+}
+
+
 void localDirListModules(const char *dir) {
 	cout << "Available Modules:\n\n";
 	SWMgr mgr(dir);
@@ -335,6 +383,9 @@ void usage(const char *progName, const char *error) {
 		"  In many places this may well be a risky or even foolish undertaking.\n"
 		"  Please take special care before you use this option in scripts, particularly in scripts you want to offer for public download.\n" 
 		"  What may appear to be safe for you, may well not be safe for someone else, who uses your scripts. \n"
+		"\n\t --allow-unverified-tls-peer \n"
+		"\n  This option will allow the program to connect to unverified peers\n"
+		"  (e.g., hosts using self-signed certificates) without asking for user confirmation.\n"
 		"\n  Commands (run in order they are passed):\n\n"
 		"\t-init\t\t\t\tcreate a basic user config file.\n"
 		"\t\t\t\t\t\tWARNING: overwrites existing.\n"
@@ -344,6 +395,7 @@ void usage(const char *progName, const char *error) {
 		"\t-r  <remoteSrcName>\t\trefresh remote source\n"
 		"\t-rl <remoteSrcName>\t\tlist available modules from remote source\n"
 		"\t-rd <remoteSrcName>\t\tlist new/updated modules from remote source\n"
+		"\t-rdesc <remoteSrcName> <modName>\tdescribe module from remote source\n"
 		"\t-ri <remoteSrcName> <modName>\tinstall module from remote source\n"
 		"\t-l\t\t\t\tlist installed modules\n"
 		"\t-u <modName>\t\t\tuninstall module\n"
@@ -358,6 +410,7 @@ void usage(const char *progName, const char *error) {
 int main(int argc, char **argv) {
 	
 	isConfirmed = false;
+	isUnvPeerAllowed = false;
 	
 	if (argc < 2) usage(*argv);
 
@@ -367,6 +420,9 @@ int main(int argc, char **argv) {
 		}
 		else if (!strcmp(argv[i], "--allow-internet-access-and-risk-tracing-and-jail-or-martyrdom")) {
 			isConfirmed = true;
+		}
+		else if (!strcmp(argv[i], "--allow-unverified-tls-peer")) {
+			isUnvPeerAllowed = true;
 		}
 		else if (!strcmp(argv[i], "-init")) {
 			initConfig();
@@ -408,6 +464,14 @@ int main(int argc, char **argv) {
 		else if (!strcmp(argv[i], "-rd")) {	// list differences between remote source and installed modules
 			if (i+1 < argc) remoteListModules(argv[++i], true);
 			else usage(*argv, "-rd requires <remoteSrcName>");
+		}
+		else if (!strcmp(argv[i], "-rdesc")) {	// describe remove module
+			if (i+2 < argc) {
+				const char *source = argv[++i];
+				const char *modName = argv[++i];
+				remoteDescribeModule(source, modName);
+			}
+			else usage(*argv, "-rdesc requires <remoteSrcName> <modName>");
 		}
 		else if (!strcmp(argv[i], "-ri")) {	// install from remote directory
 			if (i+2 < argc) {

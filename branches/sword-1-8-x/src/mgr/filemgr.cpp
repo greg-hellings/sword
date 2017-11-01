@@ -24,6 +24,7 @@
 #include <filemgr.h>
 #include <utilstr.h>
 
+#include <stdlib.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -128,15 +129,6 @@ FileDesc::~FileDesc() {
 		
 	if (path)
 		delete [] path;
-}
-
-
-int FileDesc::getFd() {
-	if (fd == -77)
-		fd = parent->sysOpen(this);
-//	if ((fd < -1) && (fd != -77))  // kludge to hand ce
-//		return 777;
-	return fd;
 }
 
 
@@ -580,6 +572,24 @@ long FileMgr::resourceConsumption() {
 		}
 	}
 	return count;
+}
+
+
+SWBuf FileMgr::getHomeDir() {
+
+	// figure out 'home' directory for app data
+	SWBuf homeDir = getenv("HOME");
+	if (!homeDir.length()) {
+		// silly windows
+		homeDir = getenv("APPDATA");
+	}
+	if (homeDir.length()) {
+		if ((homeDir[homeDir.length()-1] != '\\') && (homeDir[homeDir.length()-1] != '/')) {
+			homeDir += "/";
+		}
+	}
+
+	return homeDir;
 }
 
 

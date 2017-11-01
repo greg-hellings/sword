@@ -5,7 +5,7 @@
 # Version change: Change line 8 only !
 # Change it immediately after a release
 
-AC_INIT(sword, 1.7.903, sword-bugs@crosswire.org, sword, http://crosswire.org/sword)
+AC_INIT(sword, 1.7.904, sword-bugs@crosswire.org, sword, http://crosswire.org/sword)
 AC_CONFIG_SRCDIR(sword.bmp)
 AC_PREREQ(2.52)
 AC_REVISION($Revision: 1.45 $)
@@ -115,8 +115,8 @@ if test x$enable_debug = xyes; then
     AM_CXXFLAGS="-O0 -Wall -Werror -Woverloaded-virtual"
   fi
 else
-  AM_CFLAGS="-O3"
-  AM_CXXFLAGS="-O3"
+  AM_CFLAGS="-Ofast"
+  AM_CXXFLAGS="-Ofast"
 fi
 
 AM_CFLAGS="$AM_CFLAGS -fPIC"
