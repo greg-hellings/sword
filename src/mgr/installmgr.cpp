@@ -101,6 +101,8 @@ RemoteTransport *InstallMgr::createHTTPTransport(const char *host, StatusReporte
 
 InstallMgr::InstallMgr(const char *privatePath, StatusReporter *sr, SWBuf u, SWBuf p) {
 	userDisclaimerConfirmed = false;
+	passive=true;
+	unverifiedPeerAllowed=true;
 	statusReporter = sr;
 	this->u = u;
 	this->p = p;
@@ -145,12 +147,13 @@ void InstallMgr::readInstallConf() {
 	clearSources();
 	
 	setFTPPassive(stricmp((*installConf)["General"]["PassiveFTP"].c_str(), "false") != 0);
+	setUnverifiedPeerAllowed(stricmp((*installConf)["General"]["UnverifiedPeerAllowed"].c_str(), "false") != 0);
 
-	SectionMap::iterator confSection = installConf->Sections.find("Sources");
+	SectionMap::iterator confSection = installConf->getSections().find("Sources");
 	ConfigEntMap::iterator sourceBegin;
 	ConfigEntMap::iterator sourceEnd;
 
-	if (confSection != installConf->Sections.end()) {
+	if (confSection != installConf->getSections().end()) {
 
 		sourceBegin = confSection->second.lower_bound("FTPSource");
 		sourceEnd = confSection->second.upper_bound("FTPSource");
@@ -204,8 +207,8 @@ void InstallMgr::readInstallConf() {
 	}
 
 	defaultMods.clear();
-	confSection = installConf->Sections.find("General");
-	if (confSection != installConf->Sections.end()) {
+	confSection = installConf->getSections().find("General");
+	if (confSection != installConf->getSections().end()) {
 		sourceBegin = confSection->second.lower_bound("DefaultMod");
 		sourceEnd = confSection->second.upper_bound("DefaultMod");
 
@@ -219,16 +222,17 @@ void InstallMgr::readInstallConf() {
 
 void InstallMgr::saveInstallConf() {
 
-	installConf->Sections["Sources"].clear();
+	installConf->getSection("Sources").clear();
 
 	for (InstallSourceMap::iterator it = sources.begin(); it != sources.end(); ++it) {
 		if (it->second) {
-			installConf->Sections["Sources"].insert(ConfigEntMap::value_type(it->second->type + "Source", it->second->getConfEnt().c_str()));
+			installConf->getSection("Sources").insert(ConfigEntMap::value_type(it->second->type + "Source", it->second->getConfEnt().c_str()));
 		}
 	}
 	(*installConf)["General"]["PassiveFTP"] = (isFTPPassive()) ? "true" : "false";
+	(*installConf)["General"]["UnverifiedPeerAllowed"] = (isUnverifiedPeerAllowed()) ? "true" : "false";
 
-	installConf->Save();
+	installConf->save();
 }
 
 
@@ -243,9 +247,9 @@ int InstallMgr::removeModule(SWMgr *manager, const char *moduleName) {
 	// save our own copy, cuz when we remove the module from the SWMgr
 	// it's likely we'll free the memory passed to us in moduleName
 	SWBuf modName = moduleName;
-	module = manager->config->Sections.find(modName);
+	module = manager->config->getSections().find(modName);
 
-	if (module != manager->config->Sections.end()) {
+	if (module != manager->config->getSections().end()) {
 		// to be sure all files are closed
 		// this does not remove the .conf information from SWMgr
 		manager->deleteModule(modName);
@@ -285,7 +289,7 @@ int InstallMgr::removeModule(SWMgr *manager, const char *moduleName) {
 						modFile += "/";
 						modFile += ent->d_name;
 						SWConfig *config = new SWConfig(modFile.c_str());
-						if (config->Sections.find(modName) != config->Sections.end()) {
+						if (config->getSections().find(modName) != config->getSections().end()) {
 							delete config;
 							FileMgr::removeFile(modFile.c_str());
 						}
@@ -331,6 +335,8 @@ SWLog::getSystemLog()->logDebug("remoteCopy: %s, %s, %s, %c, %s", (is?is->source
 		trans->setUser(u);
 		trans->setPasswd(p);
 	}
+
+	trans->setUnverifiedPeerAllowed(unverifiedPeerAllowed);
 
 	SWBuf urlPrefix;
 	if (is->type == "HTTP") {
@@ -421,9 +427,9 @@ int InstallMgr::installModule(SWMgr *destMgr, const char *fromLocation, const ch
 
 	SWMgr mgr(sourceDir.c_str());
 	
-	module = mgr.config->Sections.find(modName);
+	module = mgr.config->getSections().find(modName);
 
-	if (module != mgr.config->Sections.end()) {
+	if (module != mgr.config->getSections().end()) {
 	
 		entry = module->second.find("CipherKey");
 		if (entry != module->second.end())
@@ -523,7 +529,7 @@ int InstallMgr::installModule(SWMgr *destMgr, const char *fromLocation, const ch
 						modFile = confDir;
 						modFile += ent->d_name;
 						SWConfig *config = new SWConfig(modFile.c_str());
-						if (config->Sections.find(modName) != config->Sections.end()) {
+						if (config->getSections().find(modName) != config->getSections().end()) {
 							SWBuf targetFile = destMgr->configPath; //"./mods.d/";
 							removeTrailingSlash(targetFile);
 							targetFile += "/";
@@ -536,7 +542,7 @@ int InstallMgr::installModule(SWMgr *destMgr, const char *fromLocation, const ch
 									aborted = true;
 								}
 								else {
-									config->Save();
+									config->save();
 									retVal = FileMgr::copyFile(modFile.c_str(), targetFile.c_str());
 								}
 							}
@@ -662,8 +668,8 @@ int InstallMgr::refreshRemoteSourceConfiguration() {
 	int errorCode = remoteCopy(&is, masterRepoList, masterRepoListPath.c_str(), false);
 	if (!errorCode) { //sucessfully downloaded the repo list
 		SWConfig masterList(masterRepoListPath);
-		SectionMap::iterator sections = masterList.Sections.find("Repos");
-		if (sections != masterList.Sections.end()) {
+		SectionMap::iterator sections = masterList.getSections().find("Repos");
+		if (sections != masterList.getSections().end()) {
 			for (ConfigEntMap::iterator actions = sections->second.begin(); actions != sections->second.end(); actions++) {
 				// Search through our current sources and see if we have a matching UID
 				InstallSourceMap::iterator it;
