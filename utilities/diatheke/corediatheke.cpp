@@ -303,77 +303,93 @@ void doquery(unsigned long maxverses = -1, unsigned char outputformat = FMT_PLAI
 			target->setKey(listkey);
 			VerseKey *vk = SWDYNAMIC_CAST(VerseKey, target->getKey());
 			
-			// if we've got a VerseKey (Bible or Commentary)
-			if (vk) {
-				// let's do some special processing if we're at verse 1
-				if (vk->getVerse() == 1) {
-					if (vk->getChapter() == 1) {
-						if (vk->getBook() == 1) {
-							if (vk->getTestament() == 1) {								
-								// MODULE START SPECIAL PROCESSING								
-								if (outputformat == FMT_LATEX)
-									 { *output << "\\swordmodule\n";
-									// put your latex module start stuff here
-								}
-							}
-							// TESTAMENT START SPECIAL PROCESSING
-							if (outputformat == FMT_LATEX) {
-								// put your latex testament start stuff here
-								*output << "\\swordtestament\n";
-							}
-						}
-						// BOOK START SPECIAL PROCESSING
-						if (outputformat == FMT_LATEX) {
-							// put your latex book start stuff here
-							*output << "\\swordbook\n";
-						}
-					}
-					// CHAPTER START SPECIAL PROCESSING
-					if (outputformat == FMT_LATEX) {
-						*output << "\n\\swordchapter{" 
-							<< vk->getOSISRef() << "}{"
-							<< vk->getText() << "}{" 
-							<< vk->getChapter() << "}";
-					}
-				}
+            if (!(optionfilters & OP_NOPRINTREFS)) {
+                // if we've got a VerseKey (Bible or Commentary)
+                if (vk) {
+                    // let's do some special processing if we're at verse 1
+                    if (vk->getVerse() == 1) {
+                        if (vk->getChapter() == 1) {
+                            if (vk->getBook() == 1) {
+                                if (vk->getTestament() == 1) {
+                                    // MODULE START SPECIAL PROCESSING
+                                    if (outputformat == FMT_LATEX)
+                                         { *output << "\\swordmodule\n";
+                                        // put your latex module start stuff here
+                                    }
+                                }
+                                // TESTAMENT START SPECIAL PROCESSING
+                                if (outputformat == FMT_LATEX) {
+                                    // put your latex testament start stuff here
+                                    *output << "\\swordtestament\n";
+                                }
+                            }
+                            // BOOK START SPECIAL PROCESSING
+                            if (outputformat == FMT_LATEX) {
+                                // put your latex book start stuff here
+                                *output << "\\swordbook\n";
+                            }
+                        }
+                        // CHAPTER START SPECIAL PROCESSING
+                        if (outputformat == FMT_LATEX) {
+                            *output << "\n\\swordchapter{"
+                                << vk->getOSISRef() << "}{"
+                                << vk->getText() << "}{"
+                                << vk->getChapter() << "}";
+                        }
+                    }
 
-				// PREVERSE MATTER
-				header = target->getEntryAttributes()["Heading"]["Preverse"]["0"];
-				*output << target->renderText(header);
+                    // PREVERSE MATTER
+                    header = target->getEntryAttributes()["Heading"]["Preverse"]["0"];
+                    *output << target->renderText(header);
 
-				// VERSE PROCESSING
-				if (outputformat == FMT_LATEX) {
-					*output << "\\swordverse{"
-						<< vk->getOSISRef() << "}{"
-						<< vk->getText() << "}{" 
-						<< vk->getVerse() << "} ";
-				}
-				// no special format processing default: just show the key
-				else {
-					*output << target->getKeyText();
-				}
-			}
-			// if we're not a VerseKey, then simply output the key
-			else { 						
-				*output << target->getKeyText();
-			}
+                    // VERSE PROCESSING
+                    if (outputformat == FMT_LATEX) {
+                        *output << "\\swordverse{"
+                            << vk->getOSISRef() << "}{"
+                            << vk->getText() << "}{"
+                            << vk->getVerse() << "} ";
+                    }
+                    // no special format processing default: just show the key
+                    else {
+                        *output << target->getKeyText();
+                    }
+                }
+                // if we're not a VerseKey, then simply output the key
+                else {
+                    *output << target->getKeyText();
+                }
+
+                // Separation between verse reference and text
+                if (outputformat == FMT_HTML || outputformat == FMT_HTMLHREF || outputformat == FMT_XHTML || outputformat == FMT_THML || outputformat == FMT_CGI) {
+                    *output << ": ";
+                }
+                else if (outputformat == FMT_RTF) {
+                    *output << ": ";
+                }
+                else if (outputformat == FMT_LATEX) {
+                    *output << " ";
+                }
+                else {
+                    *output << ": ";
+                }
+            }
 
 			// OUTPUT RENDER ENTRY
-			if (outputformat == FMT_HTML || outputformat == FMT_HTMLHREF || outputformat == FMT_XHTML || outputformat == FMT_THML || outputformat == FMT_CGI) {
-				*output << ": <span ";
-				*output << "style=\"font:"  << font << ";\" ";
-				if (strcmp(modlocale,locale) !=0 ) { *output << "lang=\"" << modlocale << "\"";}
-				*output << ">";
-			}
-			else if (outputformat == FMT_RTF) {
-				*output << ": {\\f1 ";
-			}
-			else if (outputformat == FMT_LATEX) {
-				*output << " ";
-			}
-			else {
-				*output << ": ";
-			}
+            if (outputformat == FMT_HTML || outputformat == FMT_HTMLHREF || outputformat == FMT_XHTML || outputformat == FMT_THML || outputformat == FMT_CGI) {
+                *output << "<span ";
+                *output << "style=\"font:"  << font << ";\" ";
+                if (strcmp(modlocale,locale) !=0 ) { *output << "lang=\"" << modlocale << "\"";}
+                *output << ">";
+            }
+            else if (outputformat == FMT_RTF) {
+                *output << "{\\f1 ";
+            }
+            else if (outputformat == FMT_LATEX) {
+                *output << "";
+            }
+            else {
+                *output << "";
+            }
 					
 			*output << target->renderText();
 			
@@ -385,14 +401,17 @@ void doquery(unsigned long maxverses = -1, unsigned char outputformat = FMT_PLAI
 				*output << "}";
 			}
 
-			if (inputformat != FMT_THML && (outputformat == FMT_HTML || outputformat == FMT_HTMLHREF || outputformat == FMT_XHTML || outputformat == FMT_THML || outputformat == FMT_CGI))
-				*output << "<br />";
-			else if (outputformat == FMT_OSIS)
-				*output << "<milestone type=\"line\"/>";
-			else if (outputformat == FMT_RTF)
-				*output << "\\par ";
-			else if (outputformat == FMT_GBF)
-				*output << "<CM>";
+
+            if (!(optionfilters & OP_NOPRINTNEWLINES)) {
+                if (inputformat != FMT_THML && (outputformat == FMT_HTML || outputformat == FMT_HTMLHREF || outputformat == FMT_XHTML || outputformat == FMT_THML || outputformat == FMT_CGI))
+                    *output << "<br />";
+                else if (outputformat == FMT_OSIS)
+                    *output << "<milestone type=\"line\"/>";
+                else if (outputformat == FMT_RTF)
+                    *output << "\\par ";
+                else if (outputformat == FMT_GBF)
+                    *output << "<CM>";
+            }
 
 			*output << "\n";
 
@@ -403,17 +422,17 @@ void doquery(unsigned long maxverses = -1, unsigned char outputformat = FMT_PLAI
 			*output << "\\end{" << modlanguage << "}\n";
 		}
 		
-		
-		*output << "(";
-		*output << target->getName();
-		
-		if (outputformat == FMT_LATEX) {
-			*output << ", ";
-			*output << target->getConfigEntry("DistributionLicense");
-			
-		}
+	    if (!(optionfilters & OP_NOPRINTMODNAME)) {
+            *output << "(";
+            *output << target->getName();
 
-		*output << ")\n";
+            if (outputformat == FMT_LATEX) {
+                *output << ", ";
+                *output << target->getConfigEntry("DistributionLicense");
+            }
+
+            *output << ")\n";
+        }
 
 		if (outputformat == FMT_RTF) {
 			*output << "}";

@@ -60,6 +60,9 @@
 #define OP_ENUM (1<<17)
 #define OP_MORPHSEG (1<<18)
 #define OP_INTROS (1<<19)
+#define OP_NOPRINTMODNAME (1<<20)
+#define OP_NOPRINTREFS (1<<21)
+#define OP_NOPRINTNEWLINES (1<<22)
 
 #define ST_NONE 0
 #define ST_REGEX 1     //  0

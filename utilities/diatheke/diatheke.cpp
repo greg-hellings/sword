@@ -41,16 +41,17 @@ void printsyntax() {
 	fprintf (stderr, "Copyright 1999-2014 by the CrossWire Bible Society\n");
 	fprintf (stderr, "http://www.crosswire.org/sword/diatheke/\n");
 	fprintf (stderr, "\n");
-	fprintf (stderr, "usage:  diatheke <-b module_name> [-s search_type] [-r search_range]\n");
+	fprintf (stderr, "usage:  diatheke -b module_name [-s search_type] [-r search_range]\n");
 	fprintf (stderr, "    [-o option_filters] [-m maximum_verses] [-f output_format]\n");
 	fprintf (stderr, "    [-e output_encoding] [-v variant#(-1=all|0|1)]\n");
-	fprintf (stderr, "    [-l locale] <-k query_key>\n");
+    fprintf (stderr, "    [-l locale] [--no-refs] [--no-mod-name] [--no-newlines] -k query_key\n");
 	fprintf (stderr, "\n");
 	fprintf (stderr, "If <book> is \"system\" you may use these system keys: \"modulelist\",\n");
-	fprintf (stderr, "\"modulelistnames\", \"bibliography\", and \"localelist\".");
+	fprintf (stderr, "\"modulelistnames\", \"bibliography\", and \"localelist\".\n");
 	fprintf (stderr, "\n");
-	fprintf (stderr, "Valid search_type values are: phrase , regex, multiword, attribute,\n");
+	fprintf (stderr, "Valid search_type values are: phrase, regex, multiword, attribute,\n");
 	fprintf (stderr, "  lucene, multilemma.\n");
+	fprintf (stderr, "\n");
 	fprintf (stderr, "Valid (output) option_filters values are: n (Strong's numbers),\n");
 	fprintf (stderr, "  f (Footnotes), m (Morphology), h (Section Headings),\n");
 	fprintf (stderr, "  c (Cantillation), v (Hebrew Vowels), a (Greek Accents), p (Arabic Vowels)\n");
@@ -59,14 +60,23 @@ void printsyntax() {
 	fprintf (stderr, "  g (Glosses/Ruby), e (Word Enumerations), i (Intros)\n");
 	fprintf (stderr, "  x (Encoded Transliterations), t (Algorithmic Transliterations via ICU),\n");
 	fprintf (stderr, "  M (morpheme segmentation)\n");
-
-	fprintf (stderr, "Maximum verses may be any integer value\n");
+	fprintf (stderr, "\n");
+	fprintf (stderr, "Maximum verses may be any integer value.\n");
+	fprintf (stderr, "\n");
 	fprintf (stderr, "Valid output_format values are: CGI, GBF, HTML, HTMLHREF, LaTeX, OSIS, RTF,\n");
- 	fprintf (stderr, "  ThML, WEBIF, XHTML, plain, and internal (def)\n");
- 	fprintf (stderr, "The option LaTeX will produce a compilable document, but may well require\n");
+ 	fprintf (stderr, "  ThML, WEBIF, XHTML, plain, and internal (default).\n");
+	fprintf (stderr, "\n");
+ 	fprintf (stderr, "The option LaTeX will produce a compilable document, but it may well require\n");
 	fprintf (stderr, "  tweaking to be usable.\n");
-	fprintf (stderr, "Valid output_encoding values are: Latin1, UTF8 (def), UTF16, HTML, RTF, and SCSU\n");
+	fprintf (stderr, "\n");
+	fprintf (stderr, "Valid output_encoding values are: Latin1, UTF8 (default), UTF16, HTML, RTF, and SCSU.\n");
+	fprintf (stderr, "\n");
 	fprintf (stderr, "Valid locale values depend on installed locales. en is default.\n");
+	fprintf (stderr, "\n");
+	fprintf (stderr, "--no-refs suppresses reference printing in output.\n");
+	fprintf (stderr, "--no-mod-name suppresses the module name in output.\n");
+	fprintf (stderr, "--no-newlines replaces new lines with a space in output.\n");
+	fprintf (stderr, "\n");
 	fprintf (stderr, "The query_key must be the last argument because all following\n");
 	fprintf (stderr, "  arguments are added to the key.\n");
 	fprintf (stderr, "\n");
@@ -283,6 +293,18 @@ int main(int argc, char **argv)
 			}
 		}
 		*/
+		else if (!::stricmp("--no-mod-name", argv[i])) {
+			if (i+1 <= argc)
+				optionfilters |= OP_NOPRINTMODNAME;
+		}
+		else if (!::stricmp("--no-refs", argv[i])) {
+			if (i+1 <= argc)
+				optionfilters |= OP_NOPRINTREFS;
+		}
+		else if (!::stricmp("--no-newlines", argv[i])) {
+			if (i+1 <= argc)
+				optionfilters |= OP_NOPRINTNEWLINES;
+		}
 		else {
 			// unexpected argument, so print the syntax
 			// -h, --help, /?, etc. will trigger this
